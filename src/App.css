@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+input
+{
+    display: block;
+    margin-bottom: 20px;
+}
+
+select {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+select option {
+  background: white;
+  padding: 4px;
+}
+
+.cusinp {
+  position: absolute;
+  z-index: 2;
+  border: none;
+  outline: none;
+}
