@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.css": "/CampsManagementSystem/static/css/main.892e4d09.css",
+    "main.js": "/CampsManagementSystem/static/js/main.d37dc969.js",
+    "static/media/aboutsection2.jpg": "/CampsManagementSystem/static/media/aboutsection2.a31453875fbf4869ec34.jpg",
+    "static/media/aboutsection1.jpg": "/CampsManagementSystem/static/media/aboutsection1.d014bca663d6eb8bfec3.jpg",
+    "static/media/hero1.jpg": "/CampsManagementSystem/static/media/hero1.56aee1d908688466f83a.jpg",
+    "static/media/hero2.jpeg": "/CampsManagementSystem/static/media/hero2.e798b151a73abab6d7f3.jpeg",
+    "static/media/aboutus1.jpg": "/CampsManagementSystem/static/media/aboutus1.850f62b8b1c3a19432f5.jpg",
+    "static/media/camp.jpg": "/CampsManagementSystem/static/media/camp.689abc517ef0649cfa7c.jpg",
+    "static/media/aboutus3.jpg": "/CampsManagementSystem/static/media/aboutus3.99ed37e3904a605d2c9a.jpg",
+    "static/media/logo without bg.png": "/CampsManagementSystem/static/media/logo without bg.6ab529e672b40066a40f.png",
+    "static/media/aboutus2.jpg": "/CampsManagementSystem/static/media/aboutus2.061cd326460dcee90676.jpg",
+    "static/media/slick.svg": "/CampsManagementSystem/static/media/slick.2630a3e3eab21c607e21.svg",
+    "static/media/slick.eot": "/CampsManagementSystem/static/media/slick.a4e97f5a2a64f0ab1323.eot",
+    "static/media/slick.ttf": "/CampsManagementSystem/static/media/slick.c94f7671dcc99dce43e2.ttf",
+    "static/media/slick.woff": "/CampsManagementSystem/static/media/slick.295183786cd8a1389865.woff",
+    "index.html": "/CampsManagementSystem/index.html",
+    "main.892e4d09.css.map": "/CampsManagementSystem/static/css/main.892e4d09.css.map",
+    "main.d37dc969.js.map": "/CampsManagementSystem/static/js/main.d37dc969.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.892e4d09.css",
+    "static/js/main.d37dc969.js"
+  ]
+}
