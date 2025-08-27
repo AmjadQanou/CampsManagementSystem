@@ -37,7 +37,7 @@ export default function Table({
   useEffect(() => {
     const fetchHealthIssues = async () => {
       try {
-        const res = await fetch("http://camps.runasp.net/healthisuues", {
+        const res = await fetch("https://camps.runasp.net/healthisuues", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -69,7 +69,7 @@ export default function Table({
     console.log(newHealthEntry);
 
     try {
-      const res = await fetch("http://camps.runasp.net/dpshealthissues", {
+      const res = await fetch("https://camps.runasp.net/dpshealthissues", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -156,7 +156,7 @@ export default function Table({
   async function hundleConfirmation(id) {
     try {
       const res = await fetch(
-        `http://camps.runasp.net/Confirmreliefregister/${id}`,
+        `https://camps.runasp.net/Confirmreliefregister/${id}`,
         {
           method: "PUT",
           headers: {

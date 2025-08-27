@@ -15,9 +15,12 @@ export default function EditNotification() {
     // جلب بيانات الإشعار الحالي
     const fetchNotification = async () => {
       try {
-        const res = await fetch(`http://camps.runasp.net/notifications/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `https://camps.runasp.net/notifications/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         setMessage(data.message);
       } catch (err) {
@@ -36,7 +39,7 @@ export default function EditNotification() {
       senderId: parseInt(user.id),
     };
 
-    const res = await fetch(`http://camps.runasp.net/notification/${id}`, {
+    const res = await fetch(`https://camps.runasp.net/notification/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

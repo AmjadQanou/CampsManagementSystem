@@ -21,8 +21,8 @@ export default function EditOrg() {
   const [image, setImage] = useState(null);
 
   useEffect(() => {
-    GetorgManager("http://camps.runasp.net/organizationmanager");
-    GetOrg(`http://camps.runasp.net/organization/${id}`);
+    GetorgManager("https://camps.runasp.net/organizationmanager");
+    GetOrg(`https://camps.runasp.net/organization/${id}`);
   }, [id]);
 
   // إرسال البيانات وتحديث المؤسسة
@@ -41,13 +41,16 @@ export default function EditOrg() {
       formData.append("File", image);
     }
 
-    const response = await fetch(`http://camps.runasp.net/organization/${id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
+    const response = await fetch(
+      `https://camps.runasp.net/organization/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
 
     if (response.ok) {
       Swal.fire({
@@ -206,7 +209,7 @@ export default function EditOrg() {
             {org.file && (
               <div className="mt-4">
                 <img
-                  src={`http://camps.runasp.net/uploads/${org.file}`}
+                  src={`https://camps.runasp.net/uploads/${org.file}`}
                   alt="Organization"
                   className="w-32 h-32 object-cover rounded-lg"
                 />

@@ -7,7 +7,7 @@ export default function Displacments() {
   const [displacments, setDisplacments] = useState();
   const columnsToExclude = ["campManager", "dPs", "campTo", "campFrom"];
   useEffect(() => {
-    getDisplacments("http://camps.runasp.net/displacement");
+    getDisplacments("https://camps.runasp.net/displacement");
   }, [0]);
 
   const { token } = useContext(TokenContext);

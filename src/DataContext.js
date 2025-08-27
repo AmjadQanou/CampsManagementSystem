@@ -12,9 +12,9 @@ export function DataContextProvider(props) {
 
   useEffect(() => {
     async function GetAll() {
-      await getCamps("http://camps.runasp.net/allcamp");
-      //  await getCampManagers("http://camps.runasp.net/campmanagers")
-      //  await getDisplacments("http://camps.runasp.net/displacement")
+      await getCamps("https://camps.runasp.net/allcamp");
+      //  await getCampManagers("https://camps.runasp.net/campmanagers")
+      //  await getDisplacments("https://camps.runasp.net/displacement")
     }
     GetAll();
   }, [0]);

@@ -18,7 +18,7 @@ export default function AddReliefTracking() {
 
   const [reliefs, setReliefs] = useState([]);
   useEffect(() => {
-    GetReliefs("http://camps.runasp.net/reliefregister");
+    GetReliefs("https://camps.runasp.net/reliefregister");
   }, []);
   function handleChange(event) {
     const { name, value } = event.target;
@@ -27,7 +27,7 @@ export default function AddReliefTracking() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const response = await fetch("http://camps.runasp.net/relieftracking", {
+      const response = await fetch("https://camps.runasp.net/relieftracking", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

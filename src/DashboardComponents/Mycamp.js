@@ -73,7 +73,7 @@ export default function Mycamp() {
           if (relief.orgManagerId && !names[relief.orgManagerId]) {
             try {
               const res = await fetch(
-                `http://camps.runasp.net/organization/bymanager/${relief.orgManagerId}`,
+                `https://camps.runasp.net/organization/bymanager/${relief.orgManagerId}`,
                 {
                   headers: { Authorization: `Bearer ${token}` },
                 }
@@ -125,7 +125,7 @@ export default function Mycamp() {
   const fetchReliefs = async (campId) => {
     try {
       const res = await fetch(
-        `http://camps.runasp.net/relief/bycamp/${campId}`,
+        `https://camps.runasp.net/relief/bycamp/${campId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -139,7 +139,7 @@ export default function Mycamp() {
 
   const fetchCamp = async () => {
     try {
-      const res = await fetch("http://camps.runasp.net/camp", {
+      const res = await fetch("https://camps.runasp.net/camp", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -154,7 +154,7 @@ export default function Mycamp() {
 
   const fetchCampByid = async () => {
     try {
-      const res = await fetch(`http://camps.runasp.net/camp/${id}`, {
+      const res = await fetch(`https://camps.runasp.net/camp/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -167,7 +167,7 @@ export default function Mycamp() {
 
   const fetchDPsC = async (id) => {
     try {
-      const res = await fetch(`http://camps.runasp.net/dps/byCamp/${id}`, {
+      const res = await fetch(`https://camps.runasp.net/dps/byCamp/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -182,7 +182,7 @@ export default function Mycamp() {
 
     try {
       const res = await fetch(
-        `http://camps.runasp.net/campmanager/${user.id}`,
+        `https://camps.runasp.net/campmanager/${user.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -196,7 +196,7 @@ export default function Mycamp() {
 
   const fetchDPs = async () => {
     try {
-      const res = await fetch("http://camps.runasp.net/dps", {
+      const res = await fetch("https://camps.runasp.net/dps", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

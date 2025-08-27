@@ -28,7 +28,7 @@ export default function Organization() {
         sethidebtn(true);
       }
       getOrgs(
-        `http://camps.runasp.net/organization?query=${encodeURIComponent(
+        `https://camps.runasp.net/organization?query=${encodeURIComponent(
           query
         )}`
       );

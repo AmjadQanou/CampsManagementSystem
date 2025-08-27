@@ -17,7 +17,7 @@ export default function EditAnnouncement() {
   const navigate = useNavigate();
   useEffect(() => {
     // استدعاء API لجلب الإعلان حسب الـ ID
-    fetch(`http://camps.runasp.net/announcments/${id}`, {
+    fetch(`https://camps.runasp.net/announcments/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -30,7 +30,7 @@ export default function EditAnnouncement() {
         setContent(data.content);
         setTitle(data.title);
 
-        setPreview(`http://camps.runasp.net/uploads/${data.file}`, {
+        setPreview(`https://camps.runasp.net/uploads/${data.file}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -59,7 +59,7 @@ export default function EditAnnouncement() {
 
     try {
       const response = await fetch(
-        `http://camps.runasp.net/announcments/${id}`,
+        `https://camps.runasp.net/announcments/${id}`,
         {
           method: "PUT",
           headers: {

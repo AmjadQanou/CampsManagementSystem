@@ -29,9 +29,9 @@ export default function CampManagers() {
 
   const fetchCampManagers = async (searchQuery = "") => {
     try {
-      let url = await "http://camps.runasp.net/campmanagers";
+      let url = await "https://camps.runasp.net/campmanagers";
       if (searchQuery) {
-        url = `http://camps.runasp.net/campmanagers/search?query=${encodeURIComponent(
+        url = `https://camps.runasp.net/campmanagers/search?query=${encodeURIComponent(
           searchQuery
         )}`;
       }

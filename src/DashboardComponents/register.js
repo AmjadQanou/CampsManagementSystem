@@ -32,7 +32,7 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const res = await fetch("http://camps.runasp.net/register", {
+      const res = await fetch("https://camps.runasp.net/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

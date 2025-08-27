@@ -78,7 +78,7 @@ const DPProfile = () => {
   useEffect(() => {
     const fetchDPData = async () => {
       try {
-        const dpRes = await fetch(`http://camps.runasp.net/dps`, {
+        const dpRes = await fetch(`https://camps.runasp.net/dps`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -91,7 +91,7 @@ const DPProfile = () => {
         const dpData = await dpRes.json();
         console.log(dpData);
 
-        //  const Userres = await fetch(`http://camps.runasp.net/user/${dpData.joinId}`, {
+        //  const Userres = await fetch(`https://camps.runasp.net/user/${dpData.joinId}`, {
         //   method: "GET",
         //   headers: {
         //     "Content-Type": "application/json",
@@ -114,7 +114,7 @@ const DPProfile = () => {
         setFormData(dpData);
 
         const familyRes = await fetch(
-          `http://camps.runasp.net/dps/by-identification/${dpData.identificationnumber}`,
+          `https://camps.runasp.net/dps/by-identification/${dpData.identificationnumber}`,
           {
             method: "GET",
             headers: {
@@ -132,7 +132,7 @@ const DPProfile = () => {
           setFamilyMembers(family);
         }
 
-        const reliefRes = await fetch(`http://camps.runasp.net/dpsreleif`, {
+        const reliefRes = await fetch(`https://camps.runasp.net/dpsreleif`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -160,7 +160,7 @@ const DPProfile = () => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch(`http://camps.runasp.net/dps/${dp.id}`, {
+      const res = await fetch(`https://camps.runasp.net/dps/${dp.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -202,7 +202,7 @@ const DPProfile = () => {
   };
 
   const handleAddMemberSave = async () => {
-    const response = await fetch("http://camps.runasp.net/dps", {
+    const response = await fetch("https://camps.runasp.net/dps", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -238,7 +238,7 @@ const DPProfile = () => {
   };
 
   const handleDeleteMember = async (id) => {
-    const response = await fetch(`http://camps.runasp.net/dps/${id}`, {
+    const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -264,7 +264,7 @@ const DPProfile = () => {
   };
 
   const handleEditMember = async (id) => {
-    const dpRes = await fetch(`http://camps.runasp.net/dps/${id}`, {
+    const dpRes = await fetch(`https://camps.runasp.net/dps/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -283,7 +283,7 @@ const DPProfile = () => {
   };
 
   const handleEditMemberSave = async (id) => {
-    const response = await fetch(`http://camps.runasp.net/dps/${id}`, {
+    const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

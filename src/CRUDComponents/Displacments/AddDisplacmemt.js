@@ -21,9 +21,9 @@ export default function AddDisplacement() {
   });
 
   useEffect(() => {
-    GetAllCamps("http://camps.runasp.net/allcamp");
-    GetDps("http://camps.runasp.net/parentdps");
-    GetCamps("http://camps.runasp.net/camp");
+    GetAllCamps("https://camps.runasp.net/allcamp");
+    GetDps("https://camps.runasp.net/parentdps");
+    GetCamps("https://camps.runasp.net/camp");
   }, []);
 
   function handleRefChange(event) {
@@ -46,7 +46,7 @@ export default function AddDisplacement() {
 
     displacement.campIdFrom = await ca[0].id;
 
-    const response = await fetch("http://camps.runasp.net/displacement", {
+    const response = await fetch("https://camps.runasp.net/displacement", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

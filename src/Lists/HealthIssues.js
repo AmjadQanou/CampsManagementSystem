@@ -18,7 +18,7 @@ export default function HealthIssues() {
     }
     const delayDebounce = setTimeout(() => {
       GetHealthIssues(
-        `http://camps.runasp.net/healthisuues?query=${encodeURIComponent(
+        `https://camps.runasp.net/healthisuues?query=${encodeURIComponent(
           query
         )}`
       );

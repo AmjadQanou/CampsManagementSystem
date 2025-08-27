@@ -33,7 +33,7 @@ export default function DPsRegister() {
   }
 
   async function getCamp() {
-    const res = await fetch("http://camps.runasp.net/campsreg", {
+    const res = await fetch("https://camps.runasp.net/campsreg", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export default function DPsRegister() {
 
   async function GetDpByIdentityNo() {
     const res = await fetch(
-      `http://camps.runasp.net/dps/byidentityreg/${register.IdentityNo}`,
+      `https://camps.runasp.net/dps/byidentityreg/${register.IdentityNo}`,
       {
         method: "GET",
         headers: {
@@ -63,7 +63,7 @@ export default function DPsRegister() {
 
   async function PostRegister() {
     try {
-      const response = await fetch("http://camps.runasp.net/registerDp", {
+      const response = await fetch("https://camps.runasp.net/registerDp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

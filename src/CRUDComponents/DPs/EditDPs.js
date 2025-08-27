@@ -41,7 +41,7 @@ export default function EditDPs() {
   useEffect(() => {
     async function fetchDP() {
       try {
-        const response = await fetch(`http://camps.runasp.net/dps/${id}`, {
+        const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -83,7 +83,7 @@ export default function EditDPs() {
         if (DPs.Identificationnumber) {
           try {
             const res = await fetch(
-              `http://camps.runasp.net/dps/check/${DPs.Identificationnumber}`
+              `https://camps.runasp.net/dps/check/${DPs.Identificationnumber}`
             );
             const data = await res.json();
 
@@ -124,7 +124,7 @@ export default function EditDPs() {
     console.log(DPs);
 
     try {
-      const response = await fetch(`http://camps.runasp.net/dps/${id}`, {
+      const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

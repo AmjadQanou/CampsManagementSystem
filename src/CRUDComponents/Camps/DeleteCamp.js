@@ -23,7 +23,7 @@ export default function DeleteCamp() {
       });
 
       try {
-        const response = await fetch(`http://camps.runasp.net/camp/${id}`, {
+        const response = await fetch(`https://camps.runasp.net/camp/${id}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",

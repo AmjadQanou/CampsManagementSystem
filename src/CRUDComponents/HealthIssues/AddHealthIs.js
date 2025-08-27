@@ -15,7 +15,7 @@ export default function AddHealthIs() {
   async function handleSubmit(e) {
     e.preventDefault();
     // إرسال البيانات
-    const response = await fetch("http://camps.runasp.net/healthisuues", {
+    const response = await fetch("https://camps.runasp.net/healthisuues", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

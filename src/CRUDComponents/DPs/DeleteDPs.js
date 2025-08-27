@@ -29,7 +29,7 @@ export default function DeleteDPs() {
   }
   useEffect(() => {
     async function fetchData() {
-      await GetDps(`http://camps.runasp.net/dps/${id}`);
+      await GetDps(`https://camps.runasp.net/dps/${id}`);
       await console.log(dp);
     }
 
@@ -51,7 +51,7 @@ export default function DeleteDPs() {
 
       if (id) {
         try {
-          const response = await fetch(`http://camps.runasp.net/dps/${id}`, {
+          const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
@@ -86,7 +86,7 @@ export default function DeleteDPs() {
     async function del() {
       if (dp) {
         await fetch(
-          `http://camps.runasp.net/dps/by-identification/${dp.identificationnumber}`,
+          `https://camps.runasp.net/dps/by-identification/${dp.identificationnumber}`,
           {
             method: "DELETE",
             headers: {

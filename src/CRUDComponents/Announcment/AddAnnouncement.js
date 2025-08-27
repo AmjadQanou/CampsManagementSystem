@@ -34,8 +34,8 @@ export default function AddAnnouncement() {
     try {
       const url =
         user.role == "CampManager"
-          ? "http://camps.runasp.net/campannouncments"
-          : "http://camps.runasp.net/organnouncments";
+          ? "https://camps.runasp.net/campannouncments"
+          : "https://camps.runasp.net/organnouncments";
       const response = await fetch(url, {
         method: "POST",
         headers: {

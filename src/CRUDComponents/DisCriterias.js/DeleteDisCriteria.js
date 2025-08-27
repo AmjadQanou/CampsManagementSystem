@@ -24,7 +24,7 @@ export default function DeleteDisCriteria() {
 
       try {
         const response = await fetch(
-          `http://camps.runasp.net/distributioncriteria/${id}`,
+          `https://camps.runasp.net/distributioncriteria/${id}`,
           {
             method: "DELETE",
             headers: {

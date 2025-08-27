@@ -43,7 +43,7 @@ export default function ReliefRegister() {
     }
     const delayDebounce = setTimeout(() => {
       getReliefs(
-        `http://camps.runasp.net/reliefregister?query=${encodeURIComponent(
+        `https://camps.runasp.net/reliefregister?query=${encodeURIComponent(
           query
         )}`
       );

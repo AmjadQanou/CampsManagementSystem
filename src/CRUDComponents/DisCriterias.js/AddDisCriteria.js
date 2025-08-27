@@ -45,8 +45,8 @@ export default function AddDisCriteria() {
   );
 
   useEffect(() => {
-    GetOrganizations("http://camps.runasp.net/organization");
-    GetHealthIssues("http://camps.runasp.net/healthisuues");
+    GetOrganizations("https://camps.runasp.net/organization");
+    GetHealthIssues("https://camps.runasp.net/healthisuues");
   }, []);
 
   function handleRefChange(event) {
@@ -73,7 +73,7 @@ export default function AddDisCriteria() {
     console.log(org);
 
     const response = await fetch(
-      "http://camps.runasp.net/distributioncriteria",
+      "https://camps.runasp.net/distributioncriteria",
       {
         method: "POST",
         headers: {

@@ -19,7 +19,7 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const resp = await fetch("http://camps.runasp.net/login", {
+      const resp = await fetch("https://camps.runasp.net/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

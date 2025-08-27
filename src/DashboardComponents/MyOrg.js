@@ -46,7 +46,7 @@ const Dashboard = () => {
     async function getAll() {
       try {
         const orgRes = await fetch(
-          `http://camps.runasp.net/organization/bymanager/${user.id}`,
+          `https://camps.runasp.net/organization/bymanager/${user.id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -57,7 +57,7 @@ const Dashboard = () => {
         const orgData = await orgRes.json();
         setOrg(orgData);
 
-        const campsRes = await fetch("http://camps.runasp.net/DisCamps", {
+        const campsRes = await fetch("https://camps.runasp.net/DisCamps", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ const Dashboard = () => {
 
         if (orgData?.id) {
           const requestsRes = await fetch(
-            `http://camps.runasp.net/reliefrequests/org/${orgData.id}`,
+            `https://camps.runasp.net/reliefrequests/org/${orgData.id}`,
             {
               headers: {
                 "Content-Type": "application/json",

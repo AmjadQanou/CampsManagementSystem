@@ -16,7 +16,7 @@ export default function DpsRelief() {
     sethidebtn(true);
 
     const delayDebounce = setTimeout(() => {
-      GetDpsReliefs(`http://camps.runasp.net/dpsreleif`);
+      GetDpsReliefs(`https://camps.runasp.net/dpsreleif`);
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, []);

@@ -24,7 +24,7 @@ export default function DeleteHealthIs() {
 
       try {
         const response = await fetch(
-          `http://camps.runasp.net/healthisuues/${id}`,
+          `https://camps.runasp.net/healthisuues/${id}`,
           {
             method: "DELETE",
             headers: {

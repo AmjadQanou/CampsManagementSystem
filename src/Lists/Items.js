@@ -21,7 +21,7 @@ export default function Items() {
     }
     const delayDebounce = setTimeout(() => {
       GetItems(
-        `http://camps.runasp.net/item?query=${encodeURIComponent(query)}`
+        `https://camps.runasp.net/item?query=${encodeURIComponent(query)}`
       );
     }, 500);
 
@@ -31,7 +31,7 @@ export default function Items() {
 
   // const handleDelete = async (id) => {
   //   try {
-  //     await fetch(`http://camps.runasp.net/item/${id}`, {
+  //     await fetch(`https://camps.runasp.net/item/${id}`, {
   //       method: 'DELETE',
   //     });
   //     setItems((prev) => prev.filter((dp) => dp.id !== id));

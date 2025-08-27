@@ -31,9 +31,9 @@ export default function EditDisCriteria() {
   useEffect(() => {
     console.log(id);
 
-    GetCriteria(`http://camps.runasp.net/distributioncriteria/${id}`);
-    GetOrganizations("http://camps.runasp.net/organization");
-    GetHealthIssues("http://camps.runasp.net/healthisuues");
+    GetCriteria(`https://camps.runasp.net/distributioncriteria/${id}`);
+    GetOrganizations("https://camps.runasp.net/organization");
+    GetHealthIssues("https://camps.runasp.net/healthisuues");
   }, []);
 
   async function GetCriteria(url) {
@@ -110,7 +110,7 @@ export default function EditDisCriteria() {
     }
 
     const response = await fetch(
-      `http://camps.runasp.net/distributioncriteria/${id}`,
+      `https://camps.runasp.net/distributioncriteria/${id}`,
       {
         method: "PUT",
         headers: {

@@ -42,7 +42,7 @@ export default function OrganizationDetails() {
   const getReliefs = async (id) => {
     try {
       const newsResponse = await axios.get(
-        `http://camps.runasp.net/relief/byorgmanager/${id}`
+        `https://camps.runasp.net/relief/byorgmanager/${id}`
       );
       setReliefs(newsResponse.data);
     } catch (error) {

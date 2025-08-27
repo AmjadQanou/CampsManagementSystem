@@ -35,7 +35,7 @@ export default function EditCampManager() {
   });
 
   useEffect(() => {
-    GetCampManager(`http://camps.runasp.net/campmanager/${id}`);
+    GetCampManager(`https://camps.runasp.net/campmanager/${id}`);
   }, [id]);
 
   async function GetCampManager(url) {
@@ -85,7 +85,7 @@ export default function EditCampManager() {
 
     try {
       const allManagersResponse = await fetch(
-        "http://camps.runasp.net/campmanagers",
+        "https://camps.runasp.net/campmanagers",
         {
           method: "GET",
           headers: {
@@ -130,7 +130,7 @@ export default function EditCampManager() {
         return;
       }
 
-      const resp = await fetch(`http://camps.runasp.net/campmanager/${id}`, {
+      const resp = await fetch(`https://camps.runasp.net/campmanager/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

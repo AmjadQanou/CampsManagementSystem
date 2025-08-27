@@ -15,10 +15,10 @@ export default function Announcments() {
   useEffect(() => {
     const url =
       user.role == "CampManager"
-        ? "http://camps.runasp.net/announcments/byType?type=camp"
+        ? "https://camps.runasp.net/announcments/byType?type=camp"
         : user.role == "OrganizationManager"
-        ? "http://camps.runasp.net/announcments/byType?type=org"
-        : "http://camps.runasp.net/announcments";
+        ? "https://camps.runasp.net/announcments/byType?type=org"
+        : "https://camps.runasp.net/announcments";
     getAnnouncment(url);
   }, [0]);
 

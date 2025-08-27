@@ -45,7 +45,7 @@ export default function Recentnews() {
                 <div
                   className="h-full bg-cover bg-center rounded-lg shadow-2xl"
                   style={{
-                    backgroundImage: `url(http://camps.runasp.net/Uploads/${item.file})`,
+                    backgroundImage: `url(https://camps.runasp.net/Uploads/${item.file})`,
                   }}
                 ></div>
               </div>

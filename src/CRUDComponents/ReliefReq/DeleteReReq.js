@@ -20,7 +20,7 @@ export default function DeleteReReq() {
     const deleteRequest = async () => {
       try {
         const response = await fetch(
-          `http://camps.runasp.net/reliefrequest/${id}`,
+          `https://camps.runasp.net/reliefrequest/${id}`,
           {
             method: "DELETE",
             headers: {

@@ -7,48 +7,47 @@ export default function DeleteAnnuoncment() {
   const { id } = useParams();
   const navigate = useNavigate();
   // let token=localStorage.getItem("token")
-    const { token } = useContext(TokenContext);
-  
+  const { token } = useContext(TokenContext);
 
   useEffect(() => {
     const confirmAndDelete = async () => {
       const result = await Swal.fire({
-        title: 'هل أنت متأكد؟',
+        title: "هل أنت متأكد؟",
         text: "لا يمكنك التراجع بعد الحذف!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذفه',
-        cancelButtonText: 'إلغاء'
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "نعم، احذفه",
+        cancelButtonText: "إلغاء",
       });
 
-   
-
       try {
-        const response = await fetch(`http://camps.runasp.net/announcment/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-
-          },
-        });
+        const response = await fetch(
+          `https://camps.runasp.net/announcment/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.ok) {
           await Swal.fire({
-            icon: 'success',
-            title: 'تم الحذف',
-            text: 'تم حذف الاعلان بنجاح.',
-            confirmButtonText: 'حسنًا'
+            icon: "success",
+            title: "تم الحذف",
+            text: "تم حذف الاعلان بنجاح.",
+            confirmButtonText: "حسنًا",
           });
           navigate("..");
         }
       } catch (error) {
         Swal.fire({
-          icon: 'error',
-          title: 'خطأ أثناء الحذف',
-          text: error.message || 'حدث خطأ غير متوقع'
+          icon: "error",
+          title: "خطأ أثناء الحذف",
+          text: error.message || "حدث خطأ غير متوقع",
         });
         console.error(error);
       }
@@ -59,4 +58,3 @@ export default function DeleteAnnuoncment() {
 
   return null; // لا حاجة لعرض شيء في الصفحة
 }
-

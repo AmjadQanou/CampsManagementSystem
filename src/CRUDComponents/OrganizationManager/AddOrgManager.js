@@ -43,7 +43,7 @@ export default function AddOrgManager() {
 
     try {
       const allOrgMResponse = await fetch(
-        "http://camps.runasp.net/organizationmanager",
+        "https://camps.runasp.net/organizationmanager",
         {
           method: "GET",
           headers: {
@@ -81,7 +81,7 @@ export default function AddOrgManager() {
       console.log(orgManager);
 
       const response = await fetch(
-        "http://camps.runasp.net/organizationmanager",
+        "https://camps.runasp.net/organizationmanager",
         {
           method: "POST",
           headers: {

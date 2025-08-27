@@ -16,19 +16,22 @@ export default function EditHealthIs() {
   });
   useEffect(() => {
     console.log(id);
-    GetHealthIs(`http://camps.runasp.net/healthisuues/${id}`);
+    GetHealthIs(`https://camps.runasp.net/healthisuues/${id}`);
   }, []);
   async function handleSubmit(e) {
     e.preventDefault();
     // إرسال البيانات
-    const response = await fetch(`http://camps.runasp.net/healthisuues/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(healthIssues),
-    });
+    const response = await fetch(
+      `https://camps.runasp.net/healthisuues/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(healthIssues),
+      }
+    );
 
     // بعد نجاح الإضافة
     if (response.ok) {

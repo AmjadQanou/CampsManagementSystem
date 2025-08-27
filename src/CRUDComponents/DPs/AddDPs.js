@@ -72,7 +72,7 @@ export default function AddDPs() {
   }, [0]);
 
   async function getDp() {
-    const response = await fetch("http://camps.runasp.net/dps", {
+    const response = await fetch("https://camps.runasp.net/dps", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export default function AddDPs() {
   }
 
   async function getCamp() {
-    const res = await fetch("http://camps.runasp.net/camp", {
+    const res = await fetch("https://camps.runasp.net/camp", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -117,7 +117,7 @@ export default function AddDPs() {
       console.log(DPs);
       console.log(token);
 
-      const response = await fetch("http://camps.runasp.net/dps", {
+      const response = await fetch("https://camps.runasp.net/dps", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +151,7 @@ export default function AddDPs() {
   }
   async function fetchIdentification() {
     const response = await fetch(
-      `http://camps.runasp.net/dps/by-identification/${Identificationnumber}`,
+      `https://camps.runasp.net/dps/by-identification/${Identificationnumber}`,
       {
         method: "GET",
         headers: {
@@ -178,7 +178,7 @@ export default function AddDPs() {
       const isFound = response.ok;
 
       const response2 = await fetch(
-        `http://camps.runasp.net/dps/byidentity/${IdentityNo}`,
+        `https://camps.runasp.net/dps/byidentity/${IdentityNo}`,
         {
           method: "GET",
           headers: {
@@ -232,7 +232,7 @@ export default function AddDPs() {
 
                     try {
                       const response = await fetch(
-                        "http://camps.runasp.net/dps",
+                        "https://camps.runasp.net/dps",
                         {
                           method: "POST",
                           headers: {

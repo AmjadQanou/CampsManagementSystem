@@ -23,7 +23,7 @@ export default function AddCamp() {
 
   useEffect(() => {
     if (user?.role === "SystemManager") {
-      fetchCampManagers("http://camps.runasp.net/campmanagers");
+      fetchCampManagers("https://camps.runasp.net/campmanagers");
     }
   }, [user]);
 
@@ -62,7 +62,7 @@ export default function AddCamp() {
     }
 
     try {
-      const response = await fetch("http://camps.runasp.net/camp", {
+      const response = await fetch("https://camps.runasp.net/camp", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

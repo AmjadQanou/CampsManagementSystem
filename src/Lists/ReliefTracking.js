@@ -17,7 +17,7 @@ export default function ReliefTracking() {
       sethideActions(true);
       sethidebtn(true);
     }
-    getReliefTraking("http://camps.runasp.net/relieftracking");
+    getReliefTraking("https://camps.runasp.net/relieftracking");
   }, [0]);
 
   async function getReliefTraking(url) {

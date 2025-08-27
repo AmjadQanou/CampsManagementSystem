@@ -24,7 +24,7 @@ export default function DeleteOrgManger() {
 
       try {
         const response = await fetch(
-          `http://camps.runasp.net/organizationmanager/${id}`,
+          `https://camps.runasp.net/organizationmanager/${id}`,
           {
             method: "DELETE",
             headers: {

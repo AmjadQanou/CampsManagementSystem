@@ -24,9 +24,9 @@ export default function EditReliefRequests() {
   const { token } = useContext(TokenContext);
 
   useEffect(() => {
-    GetReliefRequest(`http://camps.runasp.net/reliefrequest/${id}`);
-    GetOrganizations("http://camps.runasp.net/organization");
-    GetCamps("http://camps.runasp.net/camp");
+    GetReliefRequest(`https://camps.runasp.net/reliefrequest/${id}`);
+    GetOrganizations("https://camps.runasp.net/organization");
+    GetCamps("https://camps.runasp.net/camp");
     if (user.role == "CampManager") {
       reliefRequest.campManagerId = user.id;
     }
@@ -112,7 +112,7 @@ export default function EditReliefRequests() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      let resp = await fetch(`http://camps.runasp.net/reliefrequest/${id}`, {
+      let resp = await fetch(`https://camps.runasp.net/reliefrequest/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

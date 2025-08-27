@@ -18,7 +18,7 @@ export default function ReliefRequest() {
       sethideActions(true);
       sethidebtn(true);
     }
-    getReliefRequets("http://camps.runasp.net/reliefrequest");
+    getReliefRequets("https://camps.runasp.net/reliefrequest");
   }, [0]);
 
   async function getReliefRequets(url) {
@@ -43,7 +43,7 @@ export default function ReliefRequest() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://camps.runasp.net/reliefrequest/${id}`, {
+      await fetch(`https://camps.runasp.net/reliefrequest/${id}`, {
         method: "DELETE",
       });
       setReliefRequests((prev) => prev.filter((dp) => dp.id !== id));

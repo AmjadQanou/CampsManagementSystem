@@ -17,7 +17,7 @@ export default function ApiContextProvider(props) {
   const getCamps = async () => {
     try {
       const campsResponse = await axios.get(
-        "http://camps.runasp.net/maincamps"
+        "https://camps.runasp.net/maincamps"
       );
       setCamps(campsResponse.data);
     } catch (error) {
@@ -29,7 +29,7 @@ export default function ApiContextProvider(props) {
   const getOrgs = async () => {
     try {
       const orgResponse = await axios.get(
-        "http://camps.runasp.net/allorganization"
+        "https://camps.runasp.net/allorganization"
       );
       setOrganizations(orgResponse.data);
       console.log(orgResponse.data, "Organizations fetched");
@@ -42,7 +42,7 @@ export default function ApiContextProvider(props) {
   const getNews = async () => {
     try {
       const newsResponse = await axios.get(
-        "http://camps.runasp.net/announcments"
+        "https://camps.runasp.net/announcments"
       );
       setNews(newsResponse.data);
     } catch (error) {
@@ -53,7 +53,7 @@ export default function ApiContextProvider(props) {
   const getOrganizationManagers = async () => {
     try {
       const response = await axios.get(
-        "http://camps.runasp.net/organizationmanager"
+        "https://camps.runasp.net/organizationmanager"
       );
       setOrganizationManagers(response.data);
       console.log(response.data, "Organization Managers fetched");
@@ -63,7 +63,7 @@ export default function ApiContextProvider(props) {
   };
   const getCampManagers = async () => {
     try {
-      const response = await axios.get("http://camps.runasp.net/campmanagers");
+      const response = await axios.get("https://camps.runasp.net/campmanagers");
       setCampManagers(response.data);
       console.log(response.data, "camp Managers fetched");
     } catch (error) {

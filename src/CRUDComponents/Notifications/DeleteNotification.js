@@ -25,7 +25,7 @@ export default function DeleteNotification() {
       if (result.isConfirmed) {
         try {
           const response = await fetch(
-            `http://camps.runasp.net/notification/${id}`,
+            `https://camps.runasp.net/notification/${id}`,
             {
               method: "DELETE",
               headers: {

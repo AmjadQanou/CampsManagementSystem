@@ -17,8 +17,8 @@ export default function EditItem() {
   const { token } = useContext(TokenContext);
 
   useEffect(() => {
-    GetItem(`http://camps.runasp.net/item/${id}`);
-    GetOrg("http://camps.runasp.net/organization");
+    GetItem(`https://camps.runasp.net/item/${id}`);
+    GetOrg("https://camps.runasp.net/organization");
   }, []);
 
   async function GetItem(url) {
@@ -74,7 +74,7 @@ export default function EditItem() {
     item.organiztionId = org.id;
 
     try {
-      const resp = await fetch(`http://camps.runasp.net/item/${id}`, {
+      const resp = await fetch(`https://camps.runasp.net/item/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

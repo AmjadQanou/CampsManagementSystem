@@ -65,25 +65,25 @@ const AdminDashboard = () => {
         setLoading(true);
 
         const [campsRes, dpsRes, orgsRes, reliefRes] = await Promise.all([
-          fetch("http://camps.runasp.net/DisCamps", {
+          fetch("https://camps.runasp.net/DisCamps", {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch("http://camps.runasp.net/dps", {
+          fetch("https://camps.runasp.net/dps", {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch("http://camps.runasp.net/organization", {
+          fetch("https://camps.runasp.net/organization", {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch("http://camps.runasp.net/reliefscharts", {
+          fetch("https://camps.runasp.net/reliefscharts", {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,

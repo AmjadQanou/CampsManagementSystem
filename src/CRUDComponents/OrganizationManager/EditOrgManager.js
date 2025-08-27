@@ -35,7 +35,7 @@ export default function EditOrgManager() {
 
   useEffect(() => {
     console.log(id);
-    GetCampManager(`http://camps.runasp.net/organizationmanager/${id}`);
+    GetCampManager(`https://camps.runasp.net/organizationmanager/${id}`);
   }, [id]);
 
   async function GetCampManager(url) {
@@ -87,7 +87,7 @@ export default function EditOrgManager() {
     try {
       // تحقق إذا كان هناك تعديل على اسم المستخدم أو البريد الإلكتروني
       const allManagersResponse = await fetch(
-        "http://camps.runasp.net/organizationmanager",
+        "https://camps.runasp.net/organizationmanager",
         {
           method: "GET",
           headers: {
@@ -134,7 +134,7 @@ export default function EditOrgManager() {
 
       // إرسال التعديل
       const resp = await fetch(
-        `http://camps.runasp.net/organizationmanager/${id}`,
+        `https://camps.runasp.net/organizationmanager/${id}`,
         {
           method: "PUT",
           headers: {

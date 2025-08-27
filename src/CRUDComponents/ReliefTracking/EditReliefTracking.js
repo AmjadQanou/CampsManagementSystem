@@ -17,8 +17,8 @@ export default function EditReliefTracking() {
   });
   const [reliefs, setReliefs] = useState([]);
   useEffect(() => {
-    GetReliefs("http://camps.runasp.net/reliefregister");
-    GetReliefTracking(`http://camps.runasp.net/relieftracking/${id}`);
+    GetReliefs("https://camps.runasp.net/reliefregister");
+    GetReliefTracking(`https://camps.runasp.net/relieftracking/${id}`);
   }, []);
   function handleChange(event) {
     const { name, value } = event.target;
@@ -28,7 +28,7 @@ export default function EditReliefTracking() {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://camps.runasp.net/relieftracking/${id}`,
+        `https://camps.runasp.net/relieftracking/${id}`,
         {
           method: "PUT",
           headers: {

@@ -25,7 +25,7 @@ export default function DeleteItem() {
       try {
         console.log(id);
 
-        const response = await fetch(`http://camps.runasp.net/item/${id}`, {
+        const response = await fetch(`https://camps.runasp.net/item/${id}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",

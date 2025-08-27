@@ -17,10 +17,10 @@ export default function AddNotification() {
 
     let url = "";
     if (receiverType === "CampManager")
-      url = "http://camps.runasp.net/allcampmanagers";
+      url = "https://camps.runasp.net/allcampmanagers";
     else if (receiverType === "OrgManager")
-      url = "http://camps.runasp.net/organizationmanager";
-    else if (receiverType === "DP") url = "http://camps.runasp.net/dps";
+      url = "https://camps.runasp.net/organizationmanager";
+    else if (receiverType === "DP") url = "https://camps.runasp.net/dps";
 
     fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -40,7 +40,7 @@ export default function AddNotification() {
       receiverId: parseInt(receiverId),
     };
 
-    const res = await fetch("http://camps.runasp.net/notification", {
+    const res = await fetch("https://camps.runasp.net/notification", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

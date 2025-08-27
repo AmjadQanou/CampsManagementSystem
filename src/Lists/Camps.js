@@ -22,7 +22,7 @@ export default function Camps() {
 
   useEffect(() => {
     async function get() {
-      await getCamps("http://camps.runasp.net/DisCamps");
+      await getCamps("https://camps.runasp.net/DisCamps");
     }
     get();
   }, [Camps.length]);

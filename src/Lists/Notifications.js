@@ -16,8 +16,8 @@ export default function Notifications() {
     //      sethidebtn(true)
     //   }
     if (user.role == "SystemManager") {
-      getNotifications("http://camps.runasp.net/notifications");
-    } else getNotifications("http://camps.runasp.net/sen-notifications");
+      getNotifications("https://camps.runasp.net/notifications");
+    } else getNotifications("https://camps.runasp.net/sen-notifications");
   }, [0]);
   let token = localStorage.getItem("token");
   async function getNotifications(url) {

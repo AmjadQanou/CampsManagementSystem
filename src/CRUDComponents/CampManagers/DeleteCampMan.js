@@ -24,7 +24,7 @@ export default function DeleteCampManger() {
 
       try {
         const response = await fetch(
-          `http://camps.runasp.net/campmanager/${id}`,
+          `https://camps.runasp.net/campmanager/${id}`,
           {
             method: "DELETE",
             headers: {

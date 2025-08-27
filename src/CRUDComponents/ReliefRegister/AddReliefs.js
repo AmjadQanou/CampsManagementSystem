@@ -29,10 +29,10 @@ export default function AddReliefs() {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    GetItems("http://camps.runasp.net/item");
-    GetCamps("http://camps.runasp.net/camp");
-    GetOrgannizations("http://camps.runasp.net/organization");
-    GetCer("http://camps.runasp.net/distributioncriteria");
+    GetItems("https://camps.runasp.net/item");
+    GetCamps("https://camps.runasp.net/camp");
+    GetOrgannizations("https://camps.runasp.net/organization");
+    GetCer("https://camps.runasp.net/distributioncriteria");
   }, []);
 
   async function postNotification() {
@@ -43,7 +43,7 @@ export default function AddReliefs() {
     };
     console.log(notification);
 
-    const resp = await fetch("http://camps.runasp.net/notification", {
+    const resp = await fetch("https://camps.runasp.net/notification", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -60,7 +60,7 @@ export default function AddReliefs() {
     console.log(getcamp);
 
     const campRes = await fetch(
-      `http://camps.runasp.net/camp/${getcamp.campId}`,
+      `https://camps.runasp.net/camp/${getcamp.campId}`,
       {
         method: "GET",
         headers: {
@@ -78,7 +78,7 @@ export default function AddReliefs() {
 
     reliefRegister.orgManagerId = user.id;
     console.log(reliefRegister);
-    const reliefResp = await fetch("http://camps.runasp.net/reliefregister", {
+    const reliefResp = await fetch("https://camps.runasp.net/reliefregister", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

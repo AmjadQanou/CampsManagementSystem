@@ -204,14 +204,14 @@ export default function ReliefDPTable({
     }
 
     try {
-      const campRes = await fetch("http://camps.runasp.net/DisCamps", {
+      const campRes = await fetch("https://camps.runasp.net/DisCamps", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const fromCampRes = await fetch("http://camps.runasp.net/camp", {
+      const fromCampRes = await fetch("https://camps.runasp.net/camp", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -248,7 +248,7 @@ export default function ReliefDPTable({
       displacementData.campIdFrom = fromCamp[0]?.id;
       console.log(displacementData);
 
-      const res = await fetch("http://camps.runasp.net/displacement", {
+      const res = await fetch("https://camps.runasp.net/displacement", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -288,7 +288,7 @@ export default function ReliefDPTable({
     const fetchCriteria = async () => {
       try {
         const res = await fetch(
-          "http://camps.runasp.net/distributioncriteria",
+          "https://camps.runasp.net/distributioncriteria",
           {
             headers: {
               "Content-Type": "application/json",
@@ -334,7 +334,7 @@ export default function ReliefDPTable({
 
       try {
         const res = await fetch(
-          `http://camps.runasp.net/distributioncriteria/dps/bycriteria/${selectedCriteriaId}`,
+          `https://camps.runasp.net/distributioncriteria/dps/bycriteria/${selectedCriteriaId}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -373,7 +373,7 @@ export default function ReliefDPTable({
 
   const handleOpenReliefModal = async () => {
     try {
-      const res = await fetch("http://camps.runasp.net/reliefregister", {
+      const res = await fetch("https://camps.runasp.net/reliefregister", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -446,7 +446,7 @@ export default function ReliefDPTable({
       };
       console.log(bod);
 
-      const res = await fetch("http://camps.runasp.net/dpsreleif", {
+      const res = await fetch("https://camps.runasp.net/dpsreleif", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

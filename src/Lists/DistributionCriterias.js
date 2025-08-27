@@ -21,12 +21,12 @@ export default function DistributionCriterias() {
     const delayDebounce = setTimeout(() => {
       if (query) {
         getDisCriterias(
-          `http://camps.runasp.net/distributioncriteria?query=${encodeURIComponent(
+          `https://camps.runasp.net/distributioncriteria?query=${encodeURIComponent(
             query
           )}`
         );
       } else {
-        getDisCriterias(`http://camps.runasp.net/distributioncriteria`);
+        getDisCriterias(`https://camps.runasp.net/distributioncriteria`);
       }
     }, 500);
 

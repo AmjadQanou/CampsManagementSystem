@@ -24,7 +24,7 @@ export default function DeleteDisplament() {
 
       try {
         const response = await fetch(
-          `http://camps.runasp.net/displacement/${id}`,
+          `https://camps.runasp.net/displacement/${id}`,
           {
             method: "DELETE",
             headers: {

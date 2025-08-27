@@ -40,8 +40,8 @@ export default function EditCamp() {
       navigate("/login");
       return;
     }
-    GetCamp(`http://camps.runasp.net/camp/${id}`);
-    GetCampsManagers("http://camps.runasp.net/campmanagers");
+    GetCamp(`https://camps.runasp.net/camp/${id}`);
+    GetCampsManagers("https://camps.runasp.net/campmanagers");
   }, [id, token, navigate]);
 
   function handleRefChange(event) {
@@ -93,7 +93,7 @@ export default function EditCamp() {
     }
 
     try {
-      const resp = await fetch(`http://camps.runasp.net/camp/${id}`, {
+      const resp = await fetch(`https://camps.runasp.net/camp/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -282,7 +282,7 @@ export default function EditCamp() {
                 الصورة الحالية
               </label>
               <img
-                src={`http://camps.runasp.net/uploads/${existingImage}`}
+                src={`https://camps.runasp.net/uploads/${existingImage}`}
                 alt="Camp"
                 className="w-48 h-auto rounded-xl shadow-md mb-4"
               />

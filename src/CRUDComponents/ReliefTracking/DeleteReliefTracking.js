@@ -24,7 +24,7 @@ export default function DeleteReliefTracking() {
 
       try {
         const response = await fetch(
-          `http://camps.runasp.net/relieftracking/${id}`,
+          `https://camps.runasp.net/relieftracking/${id}`,
           {
             method: "DELETE",
             headers: {

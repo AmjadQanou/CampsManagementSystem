@@ -23,7 +23,7 @@ export default function AddReliefRequests() {
   const { token } = useContext(TokenContext);
 
   useEffect(() => {
-    GetOrganizations("http://camps.runasp.net/organization");
+    GetOrganizations("https://camps.runasp.net/organization");
     reliefRequest.campManagerId = user.id;
   }, []);
 
@@ -63,7 +63,7 @@ export default function AddReliefRequests() {
             orgId: orgId,
           };
           await PostReliefRequest(
-            "http://camps.runasp.net/reliefrequest",
+            "https://camps.runasp.net/reliefrequest",
             requestData
           );
         }

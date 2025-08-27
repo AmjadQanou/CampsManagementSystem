@@ -6,7 +6,7 @@ const DistributionDocs = () => {
   let token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch("http://camps.runasp.net/DocswithReliefs", {
+    fetch("https://camps.runasp.net/DocswithReliefs", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

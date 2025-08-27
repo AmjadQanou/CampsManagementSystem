@@ -17,14 +17,14 @@ export default function AddItems() {
   const [org, setOrg] = useState([]);
 
   useEffect(() => {
-    GetItems("http://camps.runasp.net/item");
-    GetOrg("http://camps.runasp.net/organization");
+    GetItems("https://camps.runasp.net/item");
+    GetOrg("https://camps.runasp.net/organization");
   }, [0]);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    await PostItem("http://camps.runasp.net/item");
+    await PostItem("https://camps.runasp.net/item");
   }
 
   function handleChange(event) {

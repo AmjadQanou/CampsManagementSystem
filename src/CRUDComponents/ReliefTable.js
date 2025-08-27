@@ -102,12 +102,12 @@ export default function ReliefTable({
     }
   }
   useEffect(() => {
-    GetOrgannizations("http://camps.runasp.net/organization");
+    GetOrgannizations("https://camps.runasp.net/organization");
   }, [0]);
 
   const handleSendHelp = async () => {
     try {
-      const itemRes = await fetch("http://camps.runasp.net/item", {
+      const itemRes = await fetch("https://camps.runasp.net/item", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -115,7 +115,7 @@ export default function ReliefTable({
         },
       });
       const criteriaRes = await fetch(
-        "http://camps.runasp.net/distributioncriteria",
+        "https://camps.runasp.net/distributioncriteria",
         {
           method: "GET",
           headers: {
@@ -144,7 +144,7 @@ export default function ReliefTable({
     };
     console.log(notification);
 
-    const resp = await fetch("http://camps.runasp.net/notification", {
+    const resp = await fetch("https://camps.runasp.net/notification", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -157,7 +157,7 @@ export default function ReliefTable({
   const handleReliefSubmit = async () => {
     for (let campId of selectedRows) {
       try {
-        const campRes = await fetch(`http://camps.runasp.net/camp/${campId}`, {
+        const campRes = await fetch(`https://camps.runasp.net/camp/${campId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -179,7 +179,7 @@ export default function ReliefTable({
           distributionCriteriaId: parseInt(form.distributionCriteriaId),
         };
 
-        const res = await fetch("http://camps.runasp.net/reliefregister", {
+        const res = await fetch("https://camps.runasp.net/reliefregister", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

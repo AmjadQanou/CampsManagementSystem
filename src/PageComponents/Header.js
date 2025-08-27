@@ -41,7 +41,7 @@ export default function Header() {
   const markAsRead = async (notification) => {
     try {
       const res = await fetch(
-        `http://camps.runasp.net/notification/${notification.id}`,
+        `https://camps.runasp.net/notification/${notification.id}`,
         {
           method: "PUT",
           headers: {
@@ -73,13 +73,16 @@ export default function Header() {
     console.log(senderId);
     if (!senderId) return "مجهول";
     try {
-      const response = await fetch(`http://camps.runasp.net/user/${senderId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          //'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const response = await fetch(
+        `https://camps.runasp.net/user/${senderId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            //'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
 
       if (!response.ok) throw new Error("فشل في جلب اسم المرسل");
       const data = await response.json();
@@ -96,7 +99,7 @@ export default function Header() {
       setLoading(true); // بداية تحميل
       try {
         const response = await fetch(
-          "http://camps.runasp.net/rec-notifications",
+          "https://camps.runasp.net/rec-notifications",
           {
             method: "GET",
             headers: {

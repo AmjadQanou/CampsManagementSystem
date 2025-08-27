@@ -21,7 +21,7 @@ export default function HealthIssueModal({
   const fetchHealthIssues = async () => {
     try {
       const token = localStorage.getItem("token");
-      const resp = await fetch("http://camps.runasp.net/healthisuues", {
+      const resp = await fetch("https://camps.runasp.net/healthisuues", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) throw new Error("Failed to fetch health issues");

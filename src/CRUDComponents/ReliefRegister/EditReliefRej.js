@@ -46,7 +46,7 @@ export default function EditReliefRegister() {
   }
 
   async function fetchItems() {
-    const res = await fetch("http://camps.runasp.net/item", {
+    const res = await fetch("https://camps.runasp.net/item", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export default function EditReliefRegister() {
     };
     console.log(notification);
 
-    const resp = await fetch("http://camps.runasp.net/notification", {
+    const resp = await fetch("https://camps.runasp.net/notification", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export default function EditReliefRegister() {
   }
 
   async function fetchCamps() {
-    const res = await fetch("http://camps.runasp.net/camp", {
+    const res = await fetch("https://camps.runasp.net/camp", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -115,7 +115,7 @@ export default function EditReliefRegister() {
   }
 
   async function fetchOrgs() {
-    const res = await fetch("http://camps.runasp.net/organization", {
+    const res = await fetch("https://camps.runasp.net/organization", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +126,7 @@ export default function EditReliefRegister() {
   }
 
   async function fetchCriteria() {
-    const res = await fetch("http://camps.runasp.net/distributioncriteria", {
+    const res = await fetch("https://camps.runasp.net/distributioncriteria", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -137,7 +137,7 @@ export default function EditReliefRegister() {
   }
 
   async function fetchRelief() {
-    const res = await fetch(`http://camps.runasp.net/reliefregister/${id}`, {
+    const res = await fetch(`https://camps.runasp.net/reliefregister/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -168,7 +168,7 @@ export default function EditReliefRegister() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    PostDistributionDoc("http://camps.runasp.net/distributiondocumentation");
+    PostDistributionDoc("https://camps.runasp.net/distributiondocumentation");
 
     if (!relief.quantity || relief.quantity <= 0) {
       Swal.fire({
@@ -180,7 +180,7 @@ export default function EditReliefRegister() {
     }
     if (user.role == "OrganizationManager") {
       const campRes = await fetch(
-        `http://camps.runasp.net/camp/${getcamp.campId}`,
+        `https://camps.runasp.net/camp/${getcamp.campId}`,
         {
           method: "GET",
           headers: {
@@ -200,7 +200,7 @@ export default function EditReliefRegister() {
       relief.orgManagerId = user.id;
     }
     try {
-      const res = await fetch(`http://camps.runasp.net/reliefregister/${id}`, {
+      const res = await fetch(`https://camps.runasp.net/reliefregister/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

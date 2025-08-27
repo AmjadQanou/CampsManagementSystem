@@ -40,7 +40,7 @@ export default function DPs() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://camps.runasp.net/dps/${id}`, {
+      await fetch(`https://camps.runasp.net/dps/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -81,9 +81,9 @@ export default function DPs() {
   const { token } = useContext(TokenContext);
 
   async function getDPs(searchQuery = "") {
-    let url = "http://camps.runasp.net/parentdps";
+    let url = "https://camps.runasp.net/parentdps";
     if (searchQuery) {
-      url = `http://camps.runasp.net/parentdps/search?query=${encodeURIComponent(
+      url = `https://camps.runasp.net/parentdps/search?query=${encodeURIComponent(
         searchQuery
       )}`;
     }

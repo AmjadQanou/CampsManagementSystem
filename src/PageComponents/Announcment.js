@@ -46,7 +46,7 @@ function Announcment() {
               width: "40%",
               height: "70%",
               position: "absolute",
-              backgroundImage: `url(http://camps.runasp.net/Uploads/${item.file})`,
+              backgroundImage: `url(https://camps.runasp.net/Uploads/${item.file})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               padding: "20px",

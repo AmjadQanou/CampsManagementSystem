@@ -19,9 +19,9 @@ export default function EditDisplacement() {
   const { token } = useContext(TokenContext);
 
   useEffect(() => {
-    GetDisplacementById(`http://camps.runasp.net/displacement/${id}`);
-    GetCamps("http://camps.runasp.net/camp");
-    GetAllCamps("http://camps.runasp.net/DisCamps");
+    GetDisplacementById(`https://camps.runasp.net/displacement/${id}`);
+    GetCamps("https://camps.runasp.net/camp");
+    GetAllCamps("https://camps.runasp.net/DisCamps");
   }, [0]);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function EditDisplacement() {
   }
 
   async function delDp() {
-    await fetch(`http://camps.runasp.net/dps/${dps.id}`, {
+    await fetch(`https://camps.runasp.net/dps/${dps.id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -76,14 +76,17 @@ export default function EditDisplacement() {
     }
     console.log(displacement);
 
-    const response = await fetch(`http://camps.runasp.net/displacement/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(displacement),
-    });
+    const response = await fetch(
+      `https://camps.runasp.net/displacement/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(displacement),
+      }
+    );
 
     if (response.ok) {
       Swal.fire({
@@ -98,7 +101,7 @@ export default function EditDisplacement() {
           if (displacement.approved) {
             const dp = { ...dps, campId: displacement.campIdTo };
 
-            await fetch(`http://camps.runasp.net/dps/${dp.id}`, {
+            await fetch(`https://camps.runasp.net/dps/${dp.id}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
@@ -110,7 +113,7 @@ export default function EditDisplacement() {
             if (memberfamily.length > 0) {
               for (let o of memberfamily) {
                 const member = { ...o, campId: displacement.campIdTo };
-                await fetch(`http://camps.runasp.net/dps/${member.id}`, {
+                await fetch(`https://camps.runasp.net/dps/${member.id}`, {
                   method: "PUT",
                   headers: {
                     "Content-Type": "application/json",
@@ -184,7 +187,7 @@ export default function EditDisplacement() {
 
         setDps(data);
         const res = await fetch(
-          `http://camps.runasp.net/dps/byidentification2/${data.identificationnumber}`,
+          `https://camps.runasp.net/dps/byidentification2/${data.identificationnumber}`,
           {
             method: "GET",
             headers: {
@@ -215,7 +218,7 @@ export default function EditDisplacement() {
         setDisplacement(data);
         console.log(data);
 
-        GetDps(`http://camps.runasp.net/dps/${data.dpsId}`);
+        GetDps(`https://camps.runasp.net/dps/${data.dpsId}`);
       } else {
         console.error("حدث خطأ في تحميل بيانات الانتقال");
       }

@@ -46,7 +46,7 @@ export default function AddCampManager() {
 
     try {
       const allManagersResponse = await fetch(
-        "http://camps.runasp.net/campmanagers",
+        "https://camps.runasp.net/campmanagers",
         {
           method: "GET",
           headers: {
@@ -83,7 +83,7 @@ export default function AddCampManager() {
         return;
       }
 
-      const response = await fetch("http://camps.runasp.net/campmanager", {
+      const response = await fetch("https://camps.runasp.net/campmanager", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

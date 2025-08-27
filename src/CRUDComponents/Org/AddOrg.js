@@ -18,7 +18,7 @@ export default function AddOrg() {
   const [organizationManager, setOrgManager] = useState([]);
 
   useEffect(() => {
-    GetorgManager("http://camps.runasp.net/organizationmanager");
+    GetorgManager("https://camps.runasp.net/organizationmanager");
   }, []);
 
   // دالة لحفظ الصورة عند اختيارها
@@ -47,7 +47,7 @@ export default function AddOrg() {
     }
 
     // إرسال البيانات باستخدام fetch
-    const response = await fetch("http://camps.runasp.net/organization", {
+    const response = await fetch("https://camps.runasp.net/organization", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
