@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/CampsManagementSystem/static/css/main.892e4d09.css",
-    "main.js": "/CampsManagementSystem/static/js/main.6baa8e37.js",
+    "main.css": "/CampsManagementSystem/static/css/main.9c57941f.css",
+    "main.js": "/CampsManagementSystem/static/js/main.46a02a5f.js",
     "static/media/aboutsection2.jpg": "/CampsManagementSystem/static/media/aboutsection2.a31453875fbf4869ec34.jpg",
     "static/media/aboutsection1.jpg": "/CampsManagementSystem/static/media/aboutsection1.d014bca663d6eb8bfec3.jpg",
     "static/media/hero1.jpg": "/CampsManagementSystem/static/media/hero1.56aee1d908688466f83a.jpg",
@@ -16,11 +16,11 @@
     "static/media/slick.ttf": "/CampsManagementSystem/static/media/slick.c94f7671dcc99dce43e2.ttf",
     "static/media/slick.woff": "/CampsManagementSystem/static/media/slick.295183786cd8a1389865.woff",
     "index.html": "/CampsManagementSystem/index.html",
-    "main.892e4d09.css.map": "/CampsManagementSystem/static/css/main.892e4d09.css.map",
-    "main.6baa8e37.js.map": "/CampsManagementSystem/static/js/main.6baa8e37.js.map"
+    "main.9c57941f.css.map": "/CampsManagementSystem/static/css/main.9c57941f.css.map",
+    "main.46a02a5f.js.map": "/CampsManagementSystem/static/js/main.46a02a5f.js.map"
   },
   "entrypoints": [
-    "static/css/main.892e4d09.css",
-    "static/js/main.6baa8e37.js"
+    "static/css/main.9c57941f.css",
+    "static/js/main.46a02a5f.js"
   ]
 }
