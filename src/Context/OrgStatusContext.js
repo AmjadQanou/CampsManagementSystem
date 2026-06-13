@@ -7,6 +7,10 @@ import React, {
 } from "react";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import {
+  organizationService,
+  organizationManagerService,
+} from "../services/apiService";
 
 export const OrgStatusContext = createContext(null);
 
@@ -35,30 +39,9 @@ export function OrgStatusProvider({ children }) {
     }
 
     try {
-      // ── 1. Fetch the org (may not exist yet) ─────────────────────────────
-      const orgRes = await fetch(
-        `https://localhost:5000/organization/bymanager/${user.id}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      // Backend returns 400/404 when no org found — treat all non-ok as "no org"
-      if (!orgRes.ok) {
-        setOrgStatus({
-          hasOrg: false,
-          isApproved: false,
-          orgId: null,
-          org: null,
-          loading: false,
-        });
-        return;
-      }
-
-      const org = await orgRes.json();
+      // ── 1. Fetch the org ─────────────────────────────
+      const orgRes = await organizationService.getByManager(user.id);
+      const org = orgRes.data;
 
       if (!org || !org.id) {
         setOrgStatus({
@@ -71,26 +54,17 @@ export function OrgStatusProvider({ children }) {
         return;
       }
 
-      // ── 2. Fetch the manager's own profile to read the Approved flag ──────
-      // The Approved column lives on OrganiztionManager (User), NOT on Organization.
-      // In OrgStatusContext.js — replace step 2 with this:
-      const managerRes = await fetch(
-        `https://localhost:5000/organizationmanager`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
+      // ── 2. Fetch managers to check Approved flag ──────
       let isApproved = false;
-      if (managerRes.ok) {
-        const managers = await managerRes.json();
+      try {
+        const managersRes = await organizationManagerService.getAll();
+        const managers = managersRes.data;
         const manager = managers.find((m) => m.id === user.id);
         if (manager) {
           isApproved = manager.approved === true || manager.Approved === true;
         }
+      } catch {
+        // ignore manager fetch error
       }
 
       setOrgStatus({
