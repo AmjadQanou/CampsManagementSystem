@@ -1,13 +1,11 @@
-import React, { useContext, useEffect } from "react";
-import { useParams, useNavigate, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { TokenContext } from "../../TokenContext";
+import { itemService } from "../../services/apiService";
 
 export default function DeleteItem() {
   const { id } = useParams();
   const navigate = useNavigate();
-  // let token=localStorage.getItem("token")
-  const { token } = useContext(TokenContext);
 
   useEffect(() => {
     const confirmAndDelete = async () => {
@@ -22,39 +20,30 @@ export default function DeleteItem() {
         cancelButtonText: "إلغاء",
       });
 
+      if (!result.isConfirmed) return;
+
       try {
-        console.log(id);
+        await itemService.delete(id);
 
-        const response = await fetch(`https://camps.runasp.net/item/${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+        await Swal.fire({
+          icon: "success",
+          title: "تم الحذف",
+          text: "تم حذف العنصر بنجاح.",
+          confirmButtonText: "حسنًا",
         });
-
-        if (response.ok) {
-          await Swal.fire({
-            icon: "success",
-            title: "تم الحذف",
-            text: "تم حذف العنصر بنجاح.",
-            confirmButtonText: "حسنًا",
-          });
-          navigate("..");
-        }
+        navigate("..");
       } catch (error) {
         Swal.fire({
           icon: "error",
           title: "خطأ أثناء الحذف",
-          text: error.message || "حدث خطأ غير متوقع",
+          text: error?.response?.data || "حدث خطأ غير متوقع",
         });
         console.error(error);
       }
-      navigate("/items");
     };
 
     confirmAndDelete();
   }, [id, navigate]);
 
-  return null; // لا حاجة لعرض شيء في الصفحة
+  return null;
 }

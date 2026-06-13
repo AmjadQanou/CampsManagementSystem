@@ -2,7 +2,11 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../AuthProvider";
-import { TokenContext } from "../../TokenContext";
+import {
+  distributionCriteriaService,
+  organizationService,
+  healthIssuesService,
+} from "../../services/apiService";
 
 export default function EditDisCriteria() {
   const { id } = useParams();
@@ -10,8 +14,6 @@ export default function EditDisCriteria() {
   const [org, setOrg] = useState([]);
   const [healthIssues, setHealth] = useState([]);
   const navigate = useNavigate();
-  // const token = localStorage.getItem("token");
-  const { token } = useContext(TokenContext);
 
   const [criteria, setCriteria] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -29,62 +31,33 @@ export default function EditDisCriteria() {
   });
 
   useEffect(() => {
-    console.log(id);
-
-    GetCriteria(`https://camps.runasp.net/distributioncriteria/${id}`);
-    GetOrganizations("https://camps.runasp.net/organization");
-    GetHealthIssues("https://camps.runasp.net/healthisuues");
+    GetCriteria();
+    GetOrganizations();
+    GetHealthIssues();
   }, []);
 
-  async function GetCriteria(url) {
+  async function GetCriteria() {
     try {
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setCriteria(data);
-      } else throw new Error("error " + resp.status);
+      const resp = await distributionCriteriaService.getById(id);
+      setCriteria(resp.data);
     } catch (er) {
       console.error(er);
     }
   }
 
-  async function GetOrganizations(url) {
+  async function GetOrganizations() {
     try {
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setOrg(data);
-      } else throw new Error("error " + resp.status);
+      const resp = await organizationService.getAll();
+      setOrg(resp.data);
     } catch (er) {
       console.error(er);
     }
   }
 
-  async function GetHealthIssues(url) {
+  async function GetHealthIssues() {
     try {
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setHealth(data);
-      } else throw new Error("error " + resp.status);
+      const resp = await healthIssuesService.getAll();
+      setHealth(resp.data);
     } catch (er) {
       console.error(er);
     }
@@ -109,19 +82,9 @@ export default function EditDisCriteria() {
       criteria.orgId = org[0].id;
     }
 
-    const response = await fetch(
-      `https://camps.runasp.net/distributioncriteria/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(criteria),
-      }
-    );
+    try {
+      await distributionCriteriaService.update(id, criteria);
 
-    if (response.ok) {
       Swal.fire({
         icon: "success",
         title: "تم التعديل!",
@@ -129,13 +92,13 @@ export default function EditDisCriteria() {
         confirmButtonText: "رجوع",
       });
       navigate("..");
-    } else {
-      const errorMessage = await response.text();
+    } catch (error) {
+      const errorMessage = error?.response?.data || "";
       if (errorMessage.includes("cer")) {
         Swal.fire({
           icon: "warning",
           title: "تنبيه!",
-          text: "بيانات  المعيار مكررة ! ",
+          text: "بيانات المعيار مكررة!",
           confirmButtonText: "فهمت",
         });
       } else {
@@ -182,7 +145,6 @@ export default function EditDisCriteria() {
               name="minimumFamilySize"
               type="number"
               min={0}
-              minLength={0}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
               required
             />
@@ -210,13 +172,13 @@ export default function EditDisCriteria() {
               onChange={handleRefChange}
               type="number"
               min={0}
-              minLength={0}
               name="numOfChildrenYoungerthan3"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
               placeholder="عدد الاطفال اقل من 3 سنوات"
               required
             />
           </div>
+
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
               عدد كبار السن
@@ -225,7 +187,6 @@ export default function EditDisCriteria() {
               onChange={handleRefChange}
               type="number"
               min={0}
-              minLength={0}
               name="numOfOldMen"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
               placeholder="عدد كبار السن"

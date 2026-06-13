@@ -22,6 +22,7 @@ import {
 import { IoIosPeople, IoMdPlanet } from "react-icons/io";
 import { RiHomeHeartLine, RiShieldUserFill } from "react-icons/ri";
 import { FiRefreshCw } from "react-icons/fi";
+import { dpService, dpsReliefService } from "../services/apiService";
 
 const DPProfile = () => {
   const { user } = useContext(AuthContext);
@@ -62,7 +63,6 @@ const DPProfile = () => {
     Childrenyoungrethan1Y: 0,
     Childrenyoungrethan9Y: 0,
     approved: false,
-
     CampId: 0,
   });
 
@@ -78,29 +78,9 @@ const DPProfile = () => {
   useEffect(() => {
     const fetchDPData = async () => {
       try {
-        const dpRes = await fetch(`https://camps.runasp.net/dps`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!dpRes.ok) throw new Error("Failed to fetch DP data");
-
-        const dpData = await dpRes.json();
+        const dpRes = await dpService.getAll();
+        const dpData = dpRes.data;
         console.log(dpData);
-
-        //  const Userres = await fetch(`https://camps.runasp.net/user/${dpData.joinId}`, {
-        //   method: "GET",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //     Authorization: `Bearer ${token}`,
-        //   },
-        // });
-        // if (!Userres.ok) throw new Error("Failed to fetch User data");
-        // const userData = await Userres.json();
-        // setUserData(userData);
 
         setNewMemberData((prev) => ({
           ...prev,
@@ -108,41 +88,28 @@ const DPProfile = () => {
           ParentId: dpData.id,
           Identificationnumber: dpData.identificationnumber,
         }));
-        console.log(dpData);
 
         setDp(dpData);
         setFormData(dpData);
 
-        const familyRes = await fetch(
-          `https://camps.runasp.net/dps/by-identification/${dpData.identificationnumber}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (familyRes.ok) {
-          const familyData = await familyRes.json();
+        try {
+          const familyRes = await dpService.getByIdentification(
+            dpData.identificationnumber,
+          );
+          const familyData = familyRes.data;
           const family = Array.isArray(familyData)
             ? familyData.filter((f) => f.parentId !== 0)
             : [];
           setFamilyMembers(family);
+        } catch (err) {
+          console.error("Error loading family members:", err);
         }
 
-        const reliefRes = await fetch(`https://camps.runasp.net/dpsreleif`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (reliefRes.ok) {
-          const reliefData = await reliefRes.json();
-          setReliefItems(reliefData);
+        try {
+          const reliefRes = await dpsReliefService.getAll();
+          setReliefItems(reliefRes.data);
+        } catch (err) {
+          console.error("Error loading relief items:", err);
         }
       } catch (error) {
         console.error("Error loading profile:", error);
@@ -160,19 +127,8 @@ const DPProfile = () => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch(`https://camps.runasp.net/dps/${dp.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) throw new Error("Failed to update profile.");
-
-      const updatedDP = await res.json();
-      setDp(updatedDP);
+      const res = await dpService.update(dp.id, formData);
+      setDp(res.data);
       setShowModal(false);
       Swal.fire({
         title: "تم التحديث!",
@@ -202,16 +158,8 @@ const DPProfile = () => {
   };
 
   const handleAddMemberSave = async () => {
-    const response = await fetch("https://camps.runasp.net/dps", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(newMemberData),
-    });
-
-    if (response.ok) {
+    try {
+      await dpService.create(newMemberData);
       Swal.fire({
         icon: "success",
         title: "تم إضافة النازح بنجاح",
@@ -221,11 +169,9 @@ const DPProfile = () => {
         color: "#fff",
         confirmButtonColor: colorTheme,
       }).then((res) => {
-        if (res.isConfirmed) {
-          window.location.reload();
-        }
+        if (res.isConfirmed) window.location.reload();
       });
-    } else {
+    } catch (error) {
       Swal.fire({
         icon: "error",
         title: "حدث خطأ",
@@ -238,15 +184,8 @@ const DPProfile = () => {
   };
 
   const handleDeleteMember = async (id) => {
-    const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.ok) {
+    try {
+      await dpService.delete(id);
       await Swal.fire({
         icon: "success",
         title: "تم الحذف",
@@ -256,25 +195,20 @@ const DPProfile = () => {
         color: "#fff",
         confirmButtonColor: colorTheme,
       }).then((res) => {
-        if (res.isConfirmed) {
-          window.location.reload();
-        }
+        if (res.isConfirmed) window.location.reload();
       });
+    } catch (error) {
+      console.error("Error deleting member:", error);
     }
   };
 
   const handleEditMember = async (id) => {
-    const dpRes = await fetch(`https://camps.runasp.net/dps/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (dpRes.ok) {
-      const data = await dpRes.json();
-      setEditMemberData(data);
+    try {
+      const res = await dpService.getById(id);
+      setEditMemberData(res.data);
       setShowEditMemberModal(true);
+    } catch (error) {
+      console.error("Error fetching member:", error);
     }
   };
 
@@ -283,16 +217,8 @@ const DPProfile = () => {
   };
 
   const handleEditMemberSave = async (id) => {
-    const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editMemberData),
-    });
-
-    if (response.ok) {
+    try {
+      await dpService.update(id, editMemberData);
       Swal.fire({
         icon: "success",
         title: "تم التحديث",
@@ -302,11 +228,9 @@ const DPProfile = () => {
         color: "#fff",
         confirmButtonColor: colorTheme,
       }).then((res) => {
-        if (res.isConfirmed) {
-          window.location.reload();
-        }
+        if (res.isConfirmed) window.location.reload();
       });
-    } else {
+    } catch (error) {
       Swal.fire({
         icon: "error",
         title: "فشل التحديث",
@@ -462,7 +386,6 @@ const DPProfile = () => {
                   ) : (
                     <FaUserCircle className="w-full h-full text-gray-600" />
                   )}
-                  {/* Holographic effect */}
                   <div className="absolute inset-0 rounded-full overflow-hidden">
                     <div className="absolute inset-0 bg-white opacity-30 animate-holographic"></div>
                   </div>
@@ -476,7 +399,6 @@ const DPProfile = () => {
                 </motion.div>
               </motion.div>
 
-              {/* Profile Info */}
               <div className="flex-1 text-right space-y-4">
                 <motion.h1
                   className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
@@ -495,7 +417,6 @@ const DPProfile = () => {
                   {dp.relationToFamilyHead || "رئيس العائلة"}
                 </motion.p>
 
-                {/* Action Buttons */}
                 <motion.div
                   className="flex flex-wrap gap-4 mt-6"
                   initial={{ opacity: 0 }}
@@ -506,13 +427,13 @@ const DPProfile = () => {
                     onClick={() => setShowModal(true)}
                     className={`px-6 py-2 rounded-full bg-gradient-to-r from-${colorTheme.replace(
                       "#",
-                      ""
+                      "",
                     )} to-${colorTheme.replace(
                       "#",
-                      ""
+                      "",
                     )} text-white font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-${colorTheme.replace(
                       "#",
-                      ""
+                      "",
                     )}/30 transition-all`}
                     style={{
                       background: `linear-gradient(to right, ${colorTheme}, ${colorTheme}90)`,
@@ -536,63 +457,32 @@ const DPProfile = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`px-6 py-3 font-bold relative ${
-              activeTab === "profile"
-                ? "text-[#DC7F56]"
-                : "text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            الملف الشخصي
-            {activeTab === "profile" && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[${colorTheme}] to-transparent"
-                style={{
-                  background: `linear-gradient(to right, transparent, ${colorTheme}, transparent)`,
-                }}
-                layoutId="tabIndicator"
-              />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("family")}
-            className={`px-6 py-3 font-bold relative ${
-              activeTab === "family"
-                ? "text-[#DC7F56]"
-                : "text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            العائلة
-            {activeTab === "family" && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[${colorTheme}] to-transparent"
-                style={{
-                  background: `linear-gradient(to right, transparent, ${colorTheme}, transparent)`,
-                }}
-                layoutId="tabIndicator"
-              />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("relief")}
-            className={`px-6 py-3 font-bold relative ${
-              activeTab === "relief"
-                ? "text-[#DC7F56]"
-                : "text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            المساعدات
-            {activeTab === "relief" && (
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[${colorTheme}] to-transparent"
-                style={{
-                  background: `linear-gradient(to right, transparent, ${colorTheme}, transparent)`,
-                }}
-                layoutId="tabIndicator"
-              />
-            )}
-          </button>
+          {["profile", "family", "relief"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-3 font-bold relative ${
+                activeTab === tab
+                  ? "text-[#DC7F56]"
+                  : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {tab === "profile"
+                ? "الملف الشخصي"
+                : tab === "family"
+                  ? "العائلة"
+                  : "المساعدات"}
+              {activeTab === tab && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-1"
+                  style={{
+                    background: `linear-gradient(to right, transparent, ${colorTheme}, transparent)`,
+                  }}
+                  layoutId="tabIndicator"
+                />
+              )}
+            </button>
+          ))}
         </motion.div>
 
         {/* Profile Tab */}
@@ -602,7 +492,6 @@ const DPProfile = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
                 title="المخيم"
@@ -634,9 +523,7 @@ const DPProfile = () => {
               />
             </div>
 
-            {/* Detailed Information */}
             <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Personal Info Card */}
               <motion.div
                 className="bg-white rounded-2xl p-6 border border-gray-700 shadow-lg"
                 initial={{ opacity: 0, x: -20 }}
@@ -644,10 +531,7 @@ const DPProfile = () => {
                 transition={{ delay: 0.5 }}
               >
                 <h3 className="text-xl font-bold text-[#DC7F56] mb-6 pb-2 border-b border-gray-700 flex items-center gap-2">
-                  <FaUserCircle
-                    className="text-[${colorTheme}]"
-                    style={{ color: colorTheme }}
-                  />
+                  <FaUserCircle style={{ color: colorTheme }} />
                   المعلومات الشخصية
                 </h3>
                 <div className="space-y-4">
@@ -669,7 +553,6 @@ const DPProfile = () => {
                 </div>
               </motion.div>
 
-              {/* Family Info Card */}
               <motion.div
                 className="bg-white rounded-2xl p-6 border border-gray-700 shadow-lg"
                 initial={{ opacity: 0, x: 20 }}
@@ -741,16 +624,7 @@ const DPProfile = () => {
                 </h3>
                 <motion.button
                   onClick={() => setShowAddMemberModal(true)}
-                  className={`px-4 py-2 rounded-full bg-gradient-to-r from-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} to-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} text-white font-bold hover:shadow-lg hover:shadow-${colorTheme.replace(
-                    "#",
-                    ""
-                  )}/30 transition-all flex items-center gap-2`}
+                  className="px-4 py-2 rounded-full text-white font-bold hover:shadow-lg transition-all flex items-center gap-2"
                   style={{
                     background: `linear-gradient(to right, ${colorTheme}, ${colorTheme}90)`,
                   }}
@@ -761,7 +635,7 @@ const DPProfile = () => {
                 </motion.button>
               </div>
 
-              <div className="bg- white text-[#DC7F56] divide-y divide-gray-700">
+              <div className="text-[#DC7F56] divide-y divide-gray-700">
                 {familyMembers.length > 0 ? (
                   familyMembers.map((member, idx) => (
                     <motion.div
@@ -775,13 +649,7 @@ const DPProfile = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div
-                            className={`w-14 h-14 rounded-full bg-gradient-to-br from-${colorTheme.replace(
-                              "#",
-                              ""
-                            )} to-${colorTheme.replace(
-                              "#",
-                              ""
-                            )}/20 flex items-center justify-center relative overflow-hidden`}
+                            className="w-14 h-14 rounded-full flex items-center justify-center relative overflow-hidden"
                             style={{
                               background: `linear-gradient(to bottom right, ${colorTheme}20, ${colorTheme}40)`,
                             }}
@@ -806,7 +674,7 @@ const DPProfile = () => {
                         <div className="flex gap-2">
                           <motion.button
                             onClick={() => handleEditMember(member.id)}
-                            className="p-2 rounded-full  hover:bg-gray-600 text-gray-300 hover:text-white"
+                            className="p-2 rounded-full text-gray-300 hover:text-white"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             style={{
@@ -817,7 +685,7 @@ const DPProfile = () => {
                           </motion.button>
                           <motion.button
                             onClick={() => handleDeleteMember(member.id)}
-                            className="p-2 rounded-full  hover:bg-red-500/20 text-gray-300 hover:text-red-400"
+                            className="p-2 rounded-full text-gray-300 hover:text-red-400"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             style={{
@@ -862,13 +730,10 @@ const DPProfile = () => {
                   المساعدات المستلمة
                 </h3>
               </div>
-
               <div className="bg-white p-6">
                 {reliefItems.length > 0 ? (
                   <div className="relative">
-                    {/* Timeline */}
                     <div className="absolute left-1/2 h-full w-0.5 bg-gradient-to-b from-transparent via-gray-600 to-transparent transform -translate-x-1/2"></div>
-
                     {reliefItems.map((item, idx) => (
                       <motion.div
                         key={idx}
@@ -878,23 +743,14 @@ const DPProfile = () => {
                         transition={{ delay: 0.1 * idx }}
                       >
                         <div
-                          className={`flex ${
-                            idx % 2 === 0 ? "flex-row" : "flex-row-reverse"
-                          } items-start`}
+                          className={`flex ${idx % 2 === 0 ? "flex-row" : "flex-row-reverse"} items-start`}
                         >
-                          {/* Dot */}
                           <div
-                            className={`w-5 h-5 rounded-full ${
-                              idx % 2 === 0 ? "ml-6" : "mr-6"
-                            }`}
+                            className={`w-5 h-5 rounded-full ${idx % 2 === 0 ? "ml-6" : "mr-6"}`}
                             style={{ backgroundColor: colorTheme }}
                           ></div>
-
-                          {/* Card */}
                           <motion.div
-                            className={`flex-1 p-5 rounded-xl ${
-                              idx % 2 === 0 ? "text-left" : "text-right"
-                            } bg-gray-750 border border-gray-700 shadow-lg`}
+                            className={`flex-1 p-5 rounded-xl ${idx % 2 === 0 ? "text-left" : "text-right"} bg-gray-750 border border-gray-700 shadow-lg`}
                             whileHover={{ y: -5 }}
                           >
                             <div className="flex justify-between items-start">
@@ -902,11 +758,7 @@ const DPProfile = () => {
                                 {item.reliefName}
                               </h4>
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                  idx % 2 === 0
-                                    ? "bg-cyan-500/20 text-cyan-400"
-                                    : "bg-purple-500/20 text-purple-400"
-                                }`}
+                                className={`px-3 py-1 rounded-full text-xs font-bold ${idx % 2 === 0 ? "bg-cyan-500/20 text-cyan-400" : "bg-purple-500/20 text-purple-400"}`}
                               >
                                 {item.timesReceived} مرات
                               </span>
@@ -915,7 +767,7 @@ const DPProfile = () => {
                             <p className="text-sm text-gray-500 mt-3 flex items-center gap-1">
                               <MdDateRange />{" "}
                               {new Date(
-                                item.lastReceivedDate
+                                item.lastReceivedDate,
                               ).toLocaleDateString("ar-EG")}
                             </p>
                           </motion.div>
@@ -1008,13 +860,7 @@ const DPProfile = () => {
               </div>
               <div className="text-center pt-6">
                 <motion.button
-                  className={`px-8 py-3 rounded-full bg-gradient-to-r from-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} to-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} text-white font-bold hover:shadow-lg transition-all`}
+                  className="px-8 py-3 rounded-full text-white font-bold hover:shadow-lg transition-all"
                   style={{
                     background: `linear-gradient(to right, ${colorTheme}, ${colorTheme}90)`,
                   }}
@@ -1106,13 +952,7 @@ const DPProfile = () => {
               </div>
               <div className="text-center pt-6">
                 <motion.button
-                  className={`px-8 py-3 rounded-full bg-gradient-to-r from-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} to-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} text-white font-bold hover:shadow-lg transition-all`}
+                  className="px-8 py-3 rounded-full text-white font-bold hover:shadow-lg transition-all"
                   style={{
                     background: `linear-gradient(to right, ${colorTheme}, ${colorTheme}90)`,
                   }}
@@ -1204,13 +1044,7 @@ const DPProfile = () => {
               </div>
               <div className="text-center pt-6">
                 <motion.button
-                  className={`px-8 py-3 rounded-full bg-gradient-to-r from-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} to-${colorTheme.replace(
-                    "#",
-                    ""
-                  )} text-white font-bold hover:shadow-lg transition-all`}
+                  className="px-8 py-3 rounded-full text-white font-bold hover:shadow-lg transition-all"
                   style={{
                     background: `linear-gradient(to right, ${colorTheme}, ${colorTheme}90)`,
                   }}
@@ -1226,7 +1060,6 @@ const DPProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Global Styles */}
       <style jsx global>{`
         @keyframes holographic {
           0% {
@@ -1266,14 +1099,13 @@ const InfoBox = ({ label, value, color }) => (
 
 const StatCard = ({ title, value, color, icon, delay = 0 }) => (
   <motion.div
-    className={`rounded-xl p-5 text-white shadow-lg border border-gray-700 relative overflow-hidden`}
+    className="rounded-xl p-5 text-white shadow-lg border border-gray-700 relative overflow-hidden"
     style={{ background: `linear-gradient(135deg, ${color}20, ${color}40)` }}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
     whileHover={{ y: -5 }}
   >
-    {/* Animated background elements */}
     <div className="absolute inset-0 overflow-hidden">
       {[...Array(3)].map((_, i) => (
         <div
@@ -1289,7 +1121,6 @@ const StatCard = ({ title, value, color, icon, delay = 0 }) => (
         />
       ))}
     </div>
-
     <div className="relative z-10">
       <div className="flex justify-center text-3xl mb-2" style={{ color }}>
         {icon}
@@ -1303,17 +1134,14 @@ const StatCard = ({ title, value, color, icon, delay = 0 }) => (
 const InputField = ({ label, name, value, onChange, type, theme }) => (
   <div className="space-y-2 text-end">
     <label className="block text-sm font-medium text-black">{label}</label>
-    <div className="relative">
-      <input
-        type={type || "text"}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="w-full bg-gray-750 border border-gray-700 rounded-lg px-4 py-2 text-[#DC7F56] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800"
-        style={{ focusRingColor: theme }}
-      />
-      <div className="absolute inset-0 rounded-lg pointer-events-none border border-transparent group-focus:border-[${theme}]"></div>
-    </div>
+    <input
+      type={type || "text"}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="w-full bg-gray-750 border border-gray-700 rounded-lg px-4 py-2 text-[#DC7F56] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800"
+      style={{ focusRingColor: theme }}
+    />
   </div>
 );
 

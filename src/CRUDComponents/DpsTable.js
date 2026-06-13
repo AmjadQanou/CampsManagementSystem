@@ -7,8 +7,13 @@ import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
 import * as XLSX from "xlsx";
 import Select from "react-select";
-
-let token = localStorage.getItem("token");
+import {
+  campService,
+  displacementService,
+  distributionCriteriaService,
+  reliefRegisterService,
+  dpsReliefService,
+} from "../services/apiService";
 
 export default function ReliefDPTable({
   tableName,
@@ -49,7 +54,7 @@ export default function ReliefDPTable({
     columns.reduce((acc, col) => {
       acc[col] = 150;
       return acc;
-    }, {})
+    }, {}),
   );
 
   const [selectedRows, setSelectedRows] = useState([]);
@@ -162,7 +167,7 @@ export default function ReliefDPTable({
 
   const handleSelectRow = (id, isParent = false) => {
     setSelectedRows((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
   };
 
@@ -204,31 +209,18 @@ export default function ReliefDPTable({
     }
 
     try {
-      const campRes = await fetch("https://camps.runasp.net/DisCamps", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const [campRes, fromCampRes] = await Promise.all([
+        campService.getOtherCamps(),
+        campService.getAll(),
+      ]);
 
-      const fromCampRes = await fetch("https://camps.runasp.net/camp", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (campRes.ok && fromCampRes.ok) {
-        const campData = await campRes.json();
-        const fromData = await fromCampRes.json();
-        setCamps(campData);
-        setFromCamp(fromData);
-        setDisplacementData((prev) => ({
-          ...prev,
-          dpsId: selectedRows[0],
-        }));
-        setShowChangeCampModal(true);
-      }
+      setCamps(campRes.data);
+      setFromCamp(fromCampRes.data);
+      setDisplacementData((prev) => ({
+        ...prev,
+        dpsId: selectedRows[0],
+      }));
+      setShowChangeCampModal(true);
     } catch (err) {
       console.error("Error loading camp data", err);
     }
@@ -248,16 +240,9 @@ export default function ReliefDPTable({
       displacementData.campIdFrom = fromCamp[0]?.id;
       console.log(displacementData);
 
-      const res = await fetch("https://camps.runasp.net/displacement", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(displacementData),
-      });
+      const res = await displacementService.create(displacementData);
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         Swal.fire({
           icon: "success",
           title: "تم!",
@@ -287,20 +272,8 @@ export default function ReliefDPTable({
   useEffect(() => {
     const fetchCriteria = async () => {
       try {
-        const res = await fetch(
-          "https://camps.runasp.net/distributioncriteria",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          setCriteriaList(data);
-        }
+        const res = await distributionCriteriaService.getAll();
+        setCriteriaList(res.data);
       } catch (err) {
         console.error("Failed to fetch criteria", err);
       }
@@ -314,7 +287,7 @@ export default function ReliefDPTable({
       Object.values(parent).some(
         (val) =>
           val &&
-          val.toString().toLowerCase().includes(searchValue.toLowerCase())
+          val.toString().toLowerCase().includes(searchValue.toLowerCase()),
       );
 
     // If no criteria selected or parent is in filtered list
@@ -333,20 +306,11 @@ export default function ReliefDPTable({
       console.log(selectedCriteriaId);
 
       try {
-        const res = await fetch(
-          `https://camps.runasp.net/distributioncriteria/dps/bycriteria/${selectedCriteriaId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          setFilteredList(data);
-        }
+        const res =
+          await distributionCriteriaService.getDPsByCriteria(
+            selectedCriteriaId,
+          );
+        setFilteredList(res.data);
       } catch (err) {
         console.error("Error fetching filtered DPS", err);
       }
@@ -373,15 +337,8 @@ export default function ReliefDPTable({
 
   const handleOpenReliefModal = async () => {
     try {
-      const res = await fetch("https://camps.runasp.net/reliefregister", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setReliefs(data);
+      const res = await reliefRegisterService.getAll();
+      setReliefs(res.data);
       setShowModal(true);
     } catch (err) {
       console.error("Failed to fetch reliefs:", err);
@@ -420,7 +377,7 @@ export default function ReliefDPTable({
 
   const handleSendRelief = async () => {
     const selectedRelief = reliefs.find(
-      (r) => r.id === parseInt(selectedReliefId)
+      (r) => r.id === parseInt(selectedReliefId),
     );
     if (!selectedRelief) return;
 
@@ -437,6 +394,8 @@ export default function ReliefDPTable({
     console.log(selectedReliefQty);
     console.log(selectedRows);
 
+    let successCount = 0;
+
     for (let c of selectedRows) {
       const bod = {
         quantity: 1,
@@ -446,26 +405,42 @@ export default function ReliefDPTable({
       };
       console.log(bod);
 
-      const res = await fetch("https://camps.runasp.net/dpsreleif", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(bod),
-      });
-      if (res.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تم الإرسال",
-          text: "تم إرسال المساعدة بنجاح!",
-        });
+      const res = await dpsReliefService.create(bod);
+      if (res.status === 200 || res.status === 201) {
+        successCount++;
       } else {
         Swal.fire({
           icon: "warning",
           text: '"حدث خطا أثناء الارسال',
         });
       }
+    }
+
+    if (successCount > 0) {
+      const newQuantity = selectedRelief.quantity - successCount;
+
+      try {
+        await reliefRegisterService.update(selectedRelief.id, {
+          ...selectedRelief,
+          quantity: newQuantity,
+        });
+
+        // Update local reliefs list so the dropdown reflects the new quantity
+        setReliefs((prev) =>
+          prev.map((r) =>
+            r.id === selectedRelief.id ? { ...r, quantity: newQuantity } : r,
+          ),
+        );
+        setSelectedReliefQty(newQuantity);
+      } catch (err) {
+        console.error("Failed to update relief register quantity:", err);
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "تم الإرسال",
+        text: "تم إرسال المساعدة بنجاح!",
+      });
     }
 
     setShowModal(false);
@@ -575,11 +550,11 @@ export default function ReliefDPTable({
           </div>
         </div>
 
-        <div className="overflow-x-auto bg-white rounded-3xl shadow-xl border border-gray-200">
-          <table className="min-w-full table-fixed">
+        <div className="overflow-x-auto bg-white rounded-xl shadow-md border border-[#E8E4DE]">
+          <table className="min-w-full table-fixed border-collapse">
             <thead>
-              <tr className="bg-[#A6B78D] text-white text-sm uppercase">
-                <th className="py-4 px-6 text-center">
+              <tr className="bg-gradient-to-l from-[#A6B78D] to-[#8ca170] text-white text-sm uppercase border-b-2 border-[#8ca170]">
+                <th className="py-4 px-6 text-center border-l border-white/10">
                   <input
                     type="checkbox"
                     onChange={handleSelectAll}
@@ -601,7 +576,7 @@ export default function ReliefDPTable({
                   <th
                     key={col}
                     style={{ width: colWidths[col] }}
-                    className="relative py-4 px-6 border-r border-[#95a87f] group"
+                    className="relative py-4 px-6 border-l border-white/10 group"
                   >
                     <div className="flex justify-between items-center">
                       <span>{col}</span>
@@ -612,21 +587,25 @@ export default function ReliefDPTable({
                     </div>
                   </th>
                 ))}
-                <th className="py-4 px-6 text-center">الإجراءات</th>
+                <th className="py-4 px-6 text-center border-l border-white/10">
+                  الإجراءات
+                </th>
               </tr>
             </thead>
-            <tbody className="text-gray-700 text-sm">
+            <tbody className="text-[#2D2926] text-sm divide-y divide-[#F0EDE9]">
               <AnimatePresence>
                 {filteredList.map((parent, index) => (
                   <React.Fragment key={parent.id}>
                     {/* Parent Row */}
                     <motion.tr
-                      className="border-b border-gray-100 hover:bg-[#f9fbf7] bg-gray-50"
+                      className={`hover:bg-[#F3F1EE] transition-colors duration-150 ${
+                        index % 2 === 0 ? "bg-white" : "bg-[#FBFAF8]"
+                      }`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05, duration: 0.3 }}
                     >
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-6 text-center border-l border-[#F0EDE9]">
                         <input
                           type="checkbox"
                           checked={isFamilySelected(parent.id)}
@@ -642,7 +621,7 @@ export default function ReliefDPTable({
                       {columns.map((col) => (
                         <td
                           key={col}
-                          className="py-4 px-6 text-center truncate font-medium"
+                          className="py-4 px-6 text-center truncate font-medium border-l border-[#F0EDE9]"
                           style={{
                             width: colWidths[col],
                             maxWidth: colWidths[col],
@@ -669,7 +648,7 @@ export default function ReliefDPTable({
                         </td>
                       ))}
                       {!hideactions && (
-                        <td className="py-4 px-6 text-center">
+                        <td className="py-4 px-6 text-center border-l border-[#F0EDE9]">
                           <div className="flex justify-center gap-4">
                             <motion.div whileTap={{ scale: 0.9 }}>
                               <Link
@@ -714,7 +693,7 @@ export default function ReliefDPTable({
                         transition={{ duration: 0.3 }}
                       >
                         <td colSpan={columns.length + 2} className="p-0">
-                          <div className="bg-gray-100 pl-12">
+                          <div className="bg-[#F9F7F4] pl-12 border-t border-[#F0EDE9]">
                             <table className="w-full">
                               <tbody>
                                 {familyMembers[parent.id].map(
@@ -735,7 +714,7 @@ export default function ReliefDPTable({
                                         <input
                                           type="checkbox"
                                           checked={selectedRows.includes(
-                                            member.id
+                                            member.id,
                                           )}
                                           onChange={() =>
                                             handleSelectRow(member.id)
@@ -800,7 +779,7 @@ export default function ReliefDPTable({
                                         </td>
                                       )}
                                     </motion.tr>
-                                  )
+                                  ),
                                 )}
                               </tbody>
                             </table>
@@ -887,7 +866,7 @@ export default function ReliefDPTable({
                 value={selectedReliefId}
                 onChange={(e) => {
                   const selected = reliefs.find(
-                    (r) => r.id === parseInt(e.target.value)
+                    (r) => r.id === parseInt(e.target.value),
                   );
                   setSelectedReliefId(e.target.value);
                   setSelectedReliefQty(selected?.quantity || 0);

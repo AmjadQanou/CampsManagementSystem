@@ -1,29 +1,25 @@
 import React, { useState, useEffect } from "react";
+import { distributionDocService } from "./services/apiService";
 
 const DistributionDocs = () => {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
-  let token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch("https://camps.runasp.net/DocswithReliefs", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setDocs(data);
-        console.log(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      });
+    fetchDocs();
   }, []);
+
+  const fetchDocs = async () => {
+    try {
+      const response = await distributionDocService.getWithReliefs();
+      setDocs(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return <div>جاري التحميل...</div>;

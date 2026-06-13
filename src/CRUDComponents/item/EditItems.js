@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import { TokenContext } from "../../TokenContext";
+import { itemService, organizationService } from "../../services/apiService";
 
 export default function EditItem() {
   const { id } = useParams();
@@ -14,29 +14,16 @@ export default function EditItem() {
   });
 
   // const token = localStorage.getItem('token');
-  const { token } = useContext(TokenContext);
 
   useEffect(() => {
-    GetItem(`https://camps.runasp.net/item/${id}`);
-    GetOrg("https://camps.runasp.net/organization");
+    GetItem();
+    GetOrg();
   }, []);
 
-  async function GetItem(url) {
+  async function GetItem() {
     try {
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        setItem(data);
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
+      const resp = await itemService.getById(id);
+      setItem(resp.data);
     } catch (err) {
       console.error(err);
     }
@@ -47,22 +34,10 @@ export default function EditItem() {
     setItem((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function GetOrg(url) {
+  async function GetOrg() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setOrg(data);
-        console.log(data);
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
+      const resp = await organizationService.getAll();
+      setOrg(resp.data);
     } catch (err) {
       console.error(err);
     }
@@ -74,56 +49,38 @@ export default function EditItem() {
     item.organiztionId = org.id;
 
     try {
-      const resp = await fetch(`https://camps.runasp.net/item/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(item),
+      await itemService.update(id, item);
+      Swal.fire({
+        icon: "success",
+        title: "تم التعديل!",
+        text: "تم تعديل المساعدة بنجاح.",
+        confirmButtonColor: "#DC7F56",
       });
+    } catch (err) {
+      const errorText = err?.response?.data || "";
 
-      if (resp.ok) {
+      if (errorText.includes("category and unit")) {
         Swal.fire({
-          icon: "success",
-          title: "تم التعديل!",
-          text: "تم تعديل المساعدة بنجاح.",
+          icon: "warning",
+          title: "تنبيه",
+          text: "عنصر بهذا التصنيف والوحدة موجود مسبقًا.",
+          confirmButtonColor: "#DC7F56",
+        });
+      } else if (errorText.includes("name")) {
+        Swal.fire({
+          icon: "warning",
+          title: "تنبيه",
+          text: "عنصر بهذا الاسم موجود مسبقًا.",
           confirmButtonColor: "#DC7F56",
         });
       } else {
-        const errorText = await resp.text();
-
-        if (errorText.includes("category and unit")) {
-          Swal.fire({
-            icon: "warning",
-            title: "تنبيه",
-            text: "عنصر بهذا التصنيف والوحدة موجود مسبقًا.",
-            confirmButtonColor: "#DC7F56",
-          });
-        } else if (errorText.includes("name")) {
-          Swal.fire({
-            icon: "warning",
-            title: "تنبيه",
-            text: "عنصر بهذا الاسم موجود مسبقًا.",
-            confirmButtonColor: "#DC7F56",
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "خطأ",
-            text: "حدث خطأ غير متوقع. حاول مرة أخرى.",
-            confirmButtonColor: "#DC7F56",
-          });
-        }
+        Swal.fire({
+          icon: "error",
+          title: "خطأ",
+          text: "حدث خطأ غير متوقع. حاول مرة أخرى.",
+          confirmButtonColor: "#DC7F56",
+        });
       }
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "فشل الاتصال",
-        text: "تعذر الاتصال بالخادم.",
-        confirmButtonColor: "#DC7F56",
-      });
     }
   }
 

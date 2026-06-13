@@ -3,6 +3,10 @@ import { AuthContext } from "../../AuthProvider";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { TokenContext } from "../../TokenContext";
+import {
+  organizationService,
+  reliefRequestService,
+} from "../../services/apiService";
 
 export default function AddReliefRequests() {
   const [org, setOrg] = useState([]);
@@ -23,7 +27,15 @@ export default function AddReliefRequests() {
   const { token } = useContext(TokenContext);
 
   useEffect(() => {
-    GetOrganizations("https://camps.runasp.net/organization");
+    const fetchOrgs = async () => {
+      try {
+        const res = await organizationService.getAll();
+        setOrg(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchOrgs();
     reliefRequest.campManagerId = user.id;
   }, []);
 
@@ -58,14 +70,7 @@ export default function AddReliefRequests() {
     if (selectedOrgs.length > 0) {
       try {
         for (let orgId of selectedOrgs) {
-          const requestData = {
-            ...reliefRequest,
-            orgId: orgId,
-          };
-          await PostReliefRequest(
-            "https://camps.runasp.net/reliefrequest",
-            requestData
-          );
+          await PostReliefRequest({ ...reliefRequest, orgId: orgId });
         }
         Swal.fire({
           icon: "success",
@@ -88,47 +93,9 @@ export default function AddReliefRequests() {
     }
   }
 
-  async function PostReliefRequest(url, data) {
-    try {
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (resp.ok) {
-        const responseData = await resp.json();
-        return responseData;
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
-    } catch (error) {
-      console.error("Post request error:", error);
-      throw error;
-    }
-  }
-
-  async function GetOrganizations(url) {
-    try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setOrg(data);
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
-    } catch (error) {
-      console.error(error);
-    }
+  async function PostReliefRequest(data) {
+    const res = await reliefRequestService.create(data);
+    return res.data;
   }
 
   return (

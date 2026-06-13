@@ -1,24 +1,27 @@
-import axios from 'axios';
-import config from '../config';
+// This file is maintained for backward compatibility
+// Import all API services from the centralized apiService
+import apiInstance from "../services/apiService";
+export {
+  authService,
+  campManagerService,
+  campService,
+  notificationService,
+  displacementService,
+  distributionCriteriaService,
+  distributionDocService,
+  dpService,
+  dpsHealthIssuesService,
+  dpsReliefService,
+  healthIssuesService,
+  itemService,
+  organizationService,
+  organizationManagerService,
+  reliefRequestService,
+  reliefTrackingService,
+  reliefRegisterService,
+  systemManagerService,
+  announcementService,
+  reliefMinService,
+} from "../services/apiService";
 
-const api = axios.create({
-  baseURL: config.API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-export default api;
+export default apiInstance;

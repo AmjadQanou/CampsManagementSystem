@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../AuthProvider";
-import { TokenContext } from "../../TokenContext";
+import { itemService, organizationService } from "../../services/apiService";
 
 export default function AddItems() {
   const { user } = useContext(AuthContext);
-  // let token=localStorage.getItem("token")
-  const { token } = useContext(TokenContext);
 
   const [item, setItem] = useState({
     unit: 0,
@@ -17,14 +15,12 @@ export default function AddItems() {
   const [org, setOrg] = useState([]);
 
   useEffect(() => {
-    GetItems("https://camps.runasp.net/item");
-    GetOrg("https://camps.runasp.net/organization");
-  }, [0]);
+    GetOrg();
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
-
-    await PostItem("https://camps.runasp.net/item");
+    await PostItem();
   }
 
   function handleChange(event) {
@@ -32,104 +28,51 @@ export default function AddItems() {
     setItem((prev) => ({ ...prev, [conc.name]: conc.value }));
   }
 
-  async function PostItem(url) {
-    if (user.role == "OrganizationManager") {
+  async function PostItem() {
+    if (user.role === "OrganizationManager") {
       item.organiztionId = org.id;
     }
-    console.log(JSON.stringify(item));
+
     try {
-      let resp = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(item),
+      await itemService.create(item);
+
+      Swal.fire({
+        icon: "success",
+        title: "تمت الإضافة بنجاح!",
+        text: "تمت إضافة المساعدة بنجاح.",
+        confirmButtonColor: "#DC7F56",
       });
-
-      if (resp.ok) {
-        let data = await resp.json();
-        console.log(data);
-
+    } catch (error) {
+      const errorText = error?.response?.data || "";
+      if (errorText.includes("category and unit")) {
         Swal.fire({
-          icon: "success",
-          title: "تمت الإضافة بنجاح!",
-          text: "تمت إضافة المساعدة بنجاح.",
+          icon: "warning",
+          title: "تنبيه",
+          text: "عنصر بهذا الاسم او بهذا التصنيف والوحدة موجود مسبقًا.",
+          confirmButtonColor: "#DC7F56",
+        });
+      } else if (errorText.includes("name")) {
+        Swal.fire({
+          icon: "warning",
+          title: "تنبيه",
+          text: "عنصر بهذا الاسم موجود مسبقًا.",
           confirmButtonColor: "#DC7F56",
         });
       } else {
-        let errorText = await resp.text();
-        if (errorText.includes("category and unit")) {
-          Swal.fire({
-            icon: "warning",
-            title: "تنبيه",
-            text: "عنصر بهذا  الاسم او بهذا التصنيف والوحدة موجود مسبقًا.",
-            confirmButtonColor: "#DC7F56",
-          });
-        } else if (errorText.includes("name")) {
-          Swal.fire({
-            icon: "warning",
-            title: "تنبيه",
-            text: "عنصر بهذا الاسم موجود مسبقًا.",
-            confirmButtonColor: "#DC7F56",
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "خطأ",
-            text: "حدث خطأ غير متوقع. حاول مرة أخرى.",
-            confirmButtonColor: "#DC7F56",
-          });
-        }
+        Swal.fire({
+          icon: "error",
+          title: "خطأ",
+          text: "حدث خطأ غير متوقع. حاول مرة أخرى.",
+          confirmButtonColor: "#DC7F56",
+        });
       }
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "فشل الاتصال",
-        text: "تعذر الاتصال بالخادم.",
-        confirmButtonColor: "#DC7F56",
-      });
     }
   }
 
-  async function GetOrg(url) {
+  async function GetOrg() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setOrg(data);
-        console.log(data);
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function GetItems(url) {
-    try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setItem(data);
-        console.log(data);
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
+      const resp = await organizationService.getAll();
+      setOrg(resp.data);
     } catch (err) {
       console.error(err);
     }
@@ -186,10 +129,11 @@ export default function AddItems() {
               required
             />
           </div>
-          {user && user.role == "SystemManager" ? (
+
+          {user && user.role === "SystemManager" && (
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
-                المؤسسة{" "}
+                المؤسسة
               </label>
               <select
                 id="organiztionId"
@@ -207,8 +151,6 @@ export default function AddItems() {
                 ))}
               </select>
             </div>
-          ) : (
-            ""
           )}
 
           <div className="flex justify-center mt-6">

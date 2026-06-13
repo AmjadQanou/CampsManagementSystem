@@ -1,11 +1,8 @@
-import React, { useContext, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useContext, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
-  FolderKanban,
-  ArrowDownUp,
-  HelpingHand,
   Home,
   Users,
   Package,
@@ -14,267 +11,522 @@ import {
   HeartPulse,
   UserRoundSearch,
   Megaphone,
-} from 'lucide-react';
-import { AuthContext } from '../AuthProvider';
+  Lock,
+  ChevronDown,
+} from "lucide-react";
+import { AuthContext } from "../AuthProvider";
+import { OrgStatusContext } from "../Context/OrgStatusContext";
 
 export default function SideBar() {
+  const { user } = useContext(AuthContext);
+  const orgStatus = useContext(OrgStatusContext);
+  const [openGroup, setOpenGroup] = useState(null);
 
-  const subLinkStyle = (path) =>
-    `flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition bg-[#DC7F56] text-white rounded-xl ${
-      window.location.pathname  === path
-        ? ' bg-[#DC7F56]/80 text-white -translate-x-5  rounded-xl '
-        : 'hover:bg-[#DC7F56] text-white  rounded-xl'
-    }`;
-  const [isOpen, setIsOpen] = useState(false);
- const {user}=useContext(AuthContext)
-  const fadeSlide = {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
-    transition: { duration: 0.2 },
+  const isOrgManager = user?.role === "OrganizationManager";
+  const isLocked =
+    isOrgManager && orgStatus && (!orgStatus.hasOrg || !orgStatus.isApproved);
+
+  const homePath =
+    user?.role === "SystemManager"
+      ? "/dashboard/admindash"
+      : user?.role === "CampManager"
+        ? "/dashboard/mycamp"
+        : "/dashboard/myorg";
+
+  const isActive = (path) => window.location.hash === `#${path}`;
+
+  const NavItem = ({ to, icon, label }) => {
+    if (isLocked) {
+      return (
+        <li>
+          <span className="sidebar-nav-item sidebar-nav-item--locked">
+            <Lock size={14} />
+            <span>{label}</span>
+          </span>
+        </li>
+      );
+    }
+    return (
+      <li>
+        <Link
+          to={to}
+          className={`sidebar-nav-item ${isActive(to) ? "sidebar-nav-item--active" : ""}`}
+        >
+          <span className="sidebar-nav-item__icon">{icon}</span>
+          <span className="sidebar-nav-item__label">{label}</span>
+          {isActive(to) && <span className="sidebar-nav-item__dot" />}
+        </Link>
+      </li>
+    );
   };
 
-  
+  const groups = [
+    {
+      id: "management",
+      label: "الإدارة",
+      items: [
+        user?.role !== "CampManager" && {
+          to: "/dashboard/Camps",
+          icon: <Home size={14} />,
+          label: "المخيمات",
+        },
+        user?.role === "SystemManager" && {
+          to: "/dashboard/campManagers",
+          icon: <Users size={14} />,
+          label: "مدراء المخيمات",
+        },
+        user?.role !== "OrganizationManager" && {
+          to: "/dashboard/org",
+          icon: <ShieldCheck size={14} />,
+          label: "المؤسسات",
+        },
+        user?.role !== "OrganizationManager" && {
+          to: "/dashboard/orgManager",
+          icon: <Users size={14} />,
+          label: "مدراء المؤسسات",
+        },
+        (user?.role === "CampManager" || user?.role === "SystemManager") && {
+          to: "/dashboard/dps",
+          icon: <UserRoundSearch size={14} />,
+          label: "النازحين",
+        },
+        user?.role !== "OrganizationManager" && {
+          to: "/dashboard/displacments",
+          icon: <Home size={14} />,
+          label: "تغيير المخيم",
+        },
+      ].filter(Boolean),
+    },
+    {
+      id: "relief",
+      label: "المساعدات",
+      items: [
+        {
+          to: "/dashboard/items",
+          icon: <Package size={14} />,
+          label: "تصنيف المساعدات",
+        },
+        {
+          to: "/dashboard/reliefreg",
+          icon: <ClipboardList size={14} />,
+          label: "تسجيل المساعدات",
+        },
+        {
+          to: "/dashboard/reliefreq",
+          icon: <ClipboardList size={14} />,
+          label: "طلبات المساعدة",
+        },
+        {
+          to: "/dashboard/discriteria",
+          icon: <ClipboardList size={14} />,
+          label: "معايير التوزيع",
+        },
+        user?.role === "CampManager" && {
+          to: "/dashboard/dpsRelief",
+          icon: <UserRoundSearch size={14} />,
+          label: "توزيع المساعدات",
+        },
+        {
+          to: "/dashboard/reliefTracking",
+          icon: <ClipboardList size={14} />,
+          label: "تتبع المساعدات",
+        },
+        {
+          to: "/dashboard/showfiles",
+          icon: <ClipboardList size={14} />,
+          label: "توثيقات التوزيع",
+        },
+      ].filter(Boolean),
+    },
+    {
+      id: "health",
+      label: "الصحة والتواصل",
+      items: [
+        {
+          to: "/dashboard/healthIssues",
+          icon: <HeartPulse size={14} />,
+          label: "المشاكل الصحية",
+        },
+        {
+          to: "/dashboard/announcments",
+          icon: <Megaphone size={14} />,
+          label: "الإعلانات",
+        },
+        {
+          to: "/dashboard/notifications",
+          icon: <ClipboardList size={14} />,
+          label: "الإشعارات",
+        },
+      ],
+    },
+  ];
 
   return (
-    <aside className="fixed top-0 overflow-hidden right-0 z-40 w-64 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 shadow-lg pt-14 px-4 transition-all">      <div className="h-full overflow-y-auto py-4">
-      
-      <div className="relative mb-12 flex justify-center h-40">
-  {/* Quantum Particle Background */}
-  <div className="absolute inset-0 overflow-hidden rounded-2xl">
-    {[...Array(12)].map((_, i) => (
-      <div 
-        key={i}
-        className="absolute rounded-full bg-[#DC7F56] opacity-20"
-        style={{
-          width: `${Math.random() * 10 + 2}px`,
-          height: `${Math.random() * 10 + 2}px`,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          animation: `float ${Math.random() * 10 + 10}s linear infinite`,
-          animationDelay: `${Math.random() * 5}s`
-        }}
-      />
-    ))}
-  </div>
+    <>
+      <style>{`
+        .sidebar {
+          position: fixed;
+          top: 0;
+          right: 0;
+          z-index: 40;
+          width: 256px;
+          height: 100vh;
+          background: #FFFFFF;
+          border-left: 1px solid #E8E4DE;
+          padding-top: 56px;
+          display: flex;
+          flex-direction: column;
+          font-family: 'Segoe UI', system-ui, sans-serif;
+          direction: rtl;
+          box-shadow: -2px 0 16px rgba(45,41,38,0.06);
+        }
 
-  {/* Holographic Card */}
-  <div className="relative w-36 h-36 group perspective-1000">
-    {/* 3D Container */}
-    <div className="relative w-full h-full preserve-3d transition-all duration-700 group-hover:rotate-x-15 group-hover:rotate-y-15">
-      {/* Card Face - Prismatic Effect */}
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl overflow-hidden">
-        {/* Chromatic Flare */}
-        <div className="absolute inset-0 bg-[conic-gradient(from_90deg_at_50%_50%,#DC7F56_0%,#E8A87C_25%,#FFFFFF_50%,#84E0F0_75%,#DC7F56_100%)] opacity-10 mix-blend-overlay" />
-        
-   
-        
-        <div className="relative z-10 w-full h-full flex items-center justify-center p-4 transition-transform duration-500 group-hover:translate-z-10">
-          <img 
-            src='../images/logo.png' 
-            className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(220,127,86,0.7)]"
-            alt="System Logo"
-          />
-        </div>
-      </div>
+        .sidebar__scroll {
+          flex: 1;
+          overflow-y: auto;
+          padding: 16px 12px 24px;
+          scrollbar-width: thin;
+          scrollbar-color: #E8E4DE transparent;
+        }
 
-      <div className="absolute inset-0 rounded-xl border-2 border-[#DC7F56]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
-        {[...Array(8)].map((_, i) => (
-          <div 
-            key={i}
-            className="absolute inset-0 rounded-xl border border-[#DC7F56]"
-            style={{
-              transform: `translateZ(${-i * 5}px)`,
-              opacity: 1 - i * 0.12
-            }}
-          />
-        ))}
-      </div>
-    </div>
+        /* Logo */
+        .sidebar__logo-wrap {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 4px 0 18px;
+        }
 
-    <div className="absolute -bottom-4 left-1/2 w-24 h-8 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#DC7F56]/40 via-transparent to-transparent -translate-x-1/2 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" />
-  </div>
+        .sidebar__logo-ring {
+          width: 68px;
+          height: 68px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #DC7F56 0%, #c46b45 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 0 0 6px rgba(220,127,86,0.12), 0 6px 20px rgba(220,127,86,0.25);
+          margin-bottom: 10px;
+        }
 
-  <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-    <div className="w-2 h-2 rounded-full bg-[#DC7F56] animate-pulse" />
-    <div className="w-2 h-2 rounded-full bg-[#DC7F56] animate-pulse delay-100" />
-    <div className="w-2 h-2 rounded-full bg-[#DC7F56] animate-pulse delay-200" />
-  </div>
-</div>
+        .sidebar__logo-ring img {
+          width: 42px;
+          height: 42px;
+          object-fit: contain;
+          filter: brightness(0) invert(1);
+        }
 
+        .sidebar__app-name {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #2D2926;
+          letter-spacing: 0.04em;
+        }
 
-        <ul className="space-y-2">
-           <li>
-            <Link
-              to={user.role=="SystemManager"?"/dashboard/admindash":user.role=="CampManager"?"/dashboard/mycamp":"/dashboard/myorg"}
-              className={subLinkStyle(user.role=="SystemManager"?"/dashboard/admindash":user.role=="CampManager"?"/dashboard/mycamp":"/dashboard/myorg")}
-              >
-              <LayoutDashboard className="w-5 h-5" />
-              الصفحة الرئيسية
-            </Link>
-          </li>
+        .sidebar__app-sub {
+          font-size: 10px;
+          color: #7A706A;
+          margin-top: 2px;
+          letter-spacing: 0.03em;
+        }
 
-          <li>
+        /* Divider */
+        .sidebar__divider {
+          height: 1px;
+          background: #E8E4DE;
+          margin: 4px 0 14px;
+        }
 
+        /* Pending banner */
+        .sidebar__banner {
+          border-radius: 8px;
+          padding: 8px 10px;
+          font-size: 11px;
+          text-align: center;
+          margin-bottom: 12px;
+          line-height: 1.5;
+        }
+        .sidebar__banner--warn {
+          background: rgba(220,127,86,0.08);
+          border: 1px solid rgba(220,127,86,0.25);
+          color: #c46b45;
+        }
+        .sidebar__banner--info {
+          background: rgba(166,183,141,0.1);
+          border: 1px solid rgba(166,183,141,0.3);
+          color: #6d7b52;
+        }
 
-            <AnimatePresence>
-              { (
-                <motion.ul
-                  className="mt-2 ml-6 space-y-2"
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  variants={fadeSlide}
-                >
-                  { user.role=="CampManager"?"":<li>
-                    <Link
-                      to="/dashboard/Camps"
-                      className={subLinkStyle('/dashboard/Camps')}
-                    >
-                      <Home className="w-4 h-4" /> المخيمات
-                    </Link>
-                  </li>
-                  }
-                 {user.role=="SystemManager" ?<li>
-                    <Link
-                      to="/dashboard/campManagers"
-                      className={subLinkStyle('/dashboard/campManagers')}
-                    >
-                      <Users className="w-4 h-4" /> مدراء المخيمات
-                    </Link>
-                  </li>:""
-                 }
-                  <li>
-                    <Link
-                      to="/dashboard/items"
-                      className={subLinkStyle('/dashboard/items')}
-                    >
-                      <Package className="w-4 h-4" /> تصنيف المساعدات
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/dashboard/reliefreg"
-                      className={subLinkStyle('/dashboard/reliefreg')}
-                    >
-                      <ClipboardList className="w-4 h-4" /> تسجيل المساعدات
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/dashboard/reliefreq"
-                      className={subLinkStyle('/dashboard/reliefreq')}
-                    >
-                      <ClipboardList className="w-4 h-4" /> طلبات المساعدة
-                    </Link>
-                  </li>
-                  { user.role=="OrganizationManager"?"": <li>
-                    <Link
-                      to="/dashboard/org"
-                      className={subLinkStyle('/dashboard/org')}
-                    >
-                      <ShieldCheck className="w-4 h-4" /> المؤسسات
-                    </Link>
-                  </li>
-                  }
-                  <li>
-                    <Link
-                      to="/dashboard/discriteria"
-                      className={subLinkStyle('/dashboard/discriteria')}
-                    >
-                      <ClipboardList className="w-4 h-4" /> معايير التوزيع
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/dashboard/healthIssues"
-                      className={subLinkStyle('/dashboard/healthIssues')}
-                    >
-                      <HeartPulse className="w-4 h-4" /> المشاكل الصحية
-                    </Link>
-                  </li>
-                 { user.role=="CampManager"||user.role=="SystemManager"? <li>
-                    <Link
-                      to="/dashboard/dps"
-                      className={subLinkStyle('/dashboard/dps')}
-                    >
-                      <UserRoundSearch className="w-4 h-4" /> النازحين
-                    </Link>
-                  </li>:""
-                 }
+        /* Home link */
+        .sidebar__home {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 10px 13px;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #fff;
+          background: linear-gradient(135deg, #DC7F56, #c46b45);
+          text-decoration: none;
+          margin-bottom: 18px;
+          box-shadow: 0 3px 10px rgba(220,127,86,0.3);
+          transition: opacity 0.15s, box-shadow 0.15s;
+        }
+        .sidebar__home:hover {
+          opacity: 0.92;
+          box-shadow: 0 5px 16px rgba(220,127,86,0.38);
+        }
 
-                                  { user.role=="CampManager"? <li>
-                    <Link
-                      to="/dashboard/dpsRelief"
-                      className={subLinkStyle('/dashboard/dpsRelief')}
-                    >
-                      <UserRoundSearch className="w-4 h-4" /> توزيع المساعدات
-                    </Link>
-                  </li>:""
-                 }
+        /* Group */
+        .sidebar__group {
+          margin-bottom: 4px;
+        }
 
-              { user.role=="OrganizationManager"?"":   <li>
-  <Link
-    to="/dashboard/orgManager"
-    className={subLinkStyle('/dashboard/orgManager')}
-    >
-    <Users className="w-4 h-4" /> مدراء المؤسسات
-  </Link>
-</li>
-              }
-{  user.role=="OrganizationManager"?"":<li>
-  <Link
-    to="/dashboard/displacments"
-    className={subLinkStyle('/dashboard/displacments')}
-  >
-    <Home className="w-4 h-4" /> تغيير المخيم 
-  </Link>
-</li>
-}
-<li>
-  <Link
-    to="/dashboard/reliefTracking"
-    className={subLinkStyle('/dashboard/reliefTracking')}
-  >
-    <ClipboardList className="w-4 h-4" /> تتبع المساعدات
-  </Link>
-</li>
+        .sidebar__group-toggle {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 5px 8px;
+          border-radius: 6px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          transition: background 0.15s;
+          margin-bottom: 3px;
+        }
+        .sidebar__group-toggle:hover {
+          background: #F9F7F4;
+        }
 
-<li>
-  <Link
-    to="/dashboard/announcments"
-    className={subLinkStyle('/dashboard/announcments')}
-  >
-    <Megaphone className="w-4 h-4" /> الاعلانات
-  </Link>
-</li> 
+        .sidebar__group-label {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #B0A89E;
+        }
 
-<li>
-  <Link
-    to="/dashboard/notifications"
-    className={subLinkStyle('/dashboard/notifications')}
-  >
-    <ClipboardList className="w-4 h-4" /> Notifications
-  </Link>
-</li>
+        .sidebar__group-chevron {
+          color: #B0A89E;
+          transition: transform 0.2s;
+          flex-shrink: 0;
+        }
+        .sidebar__group-chevron--open {
+          transform: rotate(180deg);
+        }
 
-<li>
-  <Link
-    to="/dashboard/showfiles"
-    className={subLinkStyle('/dashboard/showfiles')}
-  >
-    <ClipboardList className="w-4 h-4" /> عرض توثيقات التوزيع
-  </Link>
-</li>
- 
-                </motion.ul>
+        .sidebar__group-items {
+          list-style: none;
+          margin: 0 0 0 4px;
+          padding: 0 0 4px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          border-right: 2px solid #F0EDE9;
+          overflow: hidden;
+        }
+
+        /* Nav item */
+        .sidebar-nav-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 10px;
+          border-radius: 8px;
+          font-size: 12.5px;
+          color: #7A706A;
+          text-decoration: none;
+          transition: background 0.15s, color 0.15s;
+          position: relative;
+          cursor: pointer;
+        }
+        .sidebar-nav-item:hover {
+          background: #F9F7F4;
+          color: #2D2926;
+        }
+        .sidebar-nav-item--active {
+          background: rgba(220,127,86,0.1);
+          color: #DC7F56;
+          font-weight: 600;
+        }
+        .sidebar-nav-item--active:hover {
+          background: rgba(220,127,86,0.14);
+          color: #DC7F56;
+        }
+        .sidebar-nav-item--locked {
+          color: #B0A89E;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
+        .sidebar-nav-item__icon {
+          display: flex;
+          align-items: center;
+          flex-shrink: 0;
+          color: inherit;
+          opacity: 0.8;
+        }
+        .sidebar-nav-item--active .sidebar-nav-item__icon {
+          opacity: 1;
+        }
+
+        .sidebar-nav-item__label {
+          flex: 1;
+          line-height: 1.3;
+        }
+
+        .sidebar-nav-item__dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #DC7F56;
+          flex-shrink: 0;
+        }
+
+        /* User badge */
+        .sidebar__user {
+          padding: 11px 14px;
+          border-top: 1px solid #E8E4DE;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #FDFCFB;
+        }
+        .sidebar__user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #DC7F56, #c46b45);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(220,127,86,0.3);
+        }
+        .sidebar__user-info {
+          flex: 1;
+          min-width: 0;
+        }
+        .sidebar__user-name {
+          font-size: 12px;
+          font-weight: 600;
+          color: #2D2926;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .sidebar__user-role {
+          font-size: 10px;
+          color: #7A706A;
+          margin-top: 1px;
+        }
+        .sidebar__user-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #A6B78D;
+          flex-shrink: 0;
+          box-shadow: 0 0 0 2px rgba(166,183,141,0.2);
+        }
+      `}</style>
+
+      <aside className="sidebar">
+        <div className="sidebar__scroll">
+          {/* Logo */}
+          <div className="sidebar__logo-wrap">
+            <div className="sidebar__logo-ring">
+              <img src="../images/logo.png" alt="logo" />
+            </div>
+            <div className="sidebar__app-name">إدارة المخيمات</div>
+            <div className="sidebar__app-sub">نظام متكامل للإدارة</div>
+          </div>
+
+          <div className="sidebar__divider" />
+
+          {/* Pending banner */}
+          {isOrgManager && orgStatus && (
+            <>
+              {!orgStatus.hasOrg && (
+                <div className="sidebar__banner sidebar__banner--warn">
+                  سجّل مؤسستك أولاً للوصول إلى لوحة التحكم
+                </div>
               )}
-            </AnimatePresence>
-          </li>
-        </ul>
+              {orgStatus.hasOrg && !orgStatus.isApproved && (
+                <div className="sidebar__banner sidebar__banner--info">
+                  ⏳ مؤسستك في انتظار موافقة المدير
+                </div>
+              )}
+            </>
+          )}
 
-  
-      </div>
-    </aside>
+          {/* Home */}
+          <Link to={homePath} className="sidebar__home">
+            <LayoutDashboard size={15} />
+            الصفحة الرئيسية
+          </Link>
+
+          {/* Groups */}
+          {groups.map((group) =>
+            group.items.length === 0 ? null : (
+              <div key={group.id} className="sidebar__group">
+                <button
+                  className="sidebar__group-toggle"
+                  onClick={() =>
+                    setOpenGroup(openGroup === group.id ? null : group.id)
+                  }
+                >
+                  <span className="sidebar__group-label">{group.label}</span>
+                  <ChevronDown
+                    size={11}
+                    className={`sidebar__group-chevron ${
+                      openGroup === group.id
+                        ? "sidebar__group-chevron--open"
+                        : ""
+                    }`}
+                  />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {(openGroup === group.id || openGroup === null) && (
+                    <motion.ul
+                      className="sidebar__group-items"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                      {group.items.map((item) => (
+                        <NavItem key={item.to} {...item} />
+                      ))}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </div>
+            ),
+          )}
+        </div>
+
+        {/* User badge */}
+        {user && (
+          <div className="sidebar__user">
+            <div className="sidebar__user-avatar">
+              {(user.username || user.name || "U")[0].toUpperCase()}
+            </div>
+            <div className="sidebar__user-info">
+              <div className="sidebar__user-name">
+                {user.username || user.name || "المستخدم"}
+              </div>
+              <div className="sidebar__user-role">{user.role}</div>
+            </div>
+            <div className="sidebar__user-dot" />
+          </div>
+        )}
+      </aside>
+    </>
   );
 }

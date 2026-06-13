@@ -3,6 +3,7 @@ import Table from "../CRUDComponents/Table";
 import { useState } from "react";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { announcementService } from "../services/apiService";
 
 export default function Announcments() {
   const [announcments, setAnnouncments] = useState();
@@ -13,44 +14,32 @@ export default function Announcments() {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    const url =
-      user.role == "CampManager"
-        ? "https://camps.runasp.net/announcments/byType?type=camp"
-        : user.role == "OrganizationManager"
-        ? "https://camps.runasp.net/announcments/byType?type=org"
-        : "https://camps.runasp.net/announcments";
-    getAnnouncment(url);
+    getAnnouncment();
   }, [0]);
 
-  async function getAnnouncment(url) {
+  async function getAnnouncment() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        console.log(data);
-
-        setAnnouncments(data);
-      } else throw new Error("error" + resp.status);
+      let resp = await announcementService.getAll();
+      console.log(resp.data);
+      setAnnouncments(resp.data);
     } catch (er) {
       console.error(er);
       return null;
     }
   }
   return (
-    announcments && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {announcments ? (
         <Table
           tableName={"الاعلانات"}
           list={announcments}
           columnsToExclude={columnsToExclude}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

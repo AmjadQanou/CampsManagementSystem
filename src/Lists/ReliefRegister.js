@@ -3,6 +3,7 @@ import Table from "../CRUDComponents/Table";
 import ReliefTable from "../CRUDComponents/ReliefTable";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { reliefRegisterService } from "../services/apiService";
 
 export default function ReliefRegister() {
   const [relifes, setRelifes] = useState();
@@ -42,28 +43,15 @@ export default function ReliefRegister() {
       sethideActions(false);
     }
     const delayDebounce = setTimeout(() => {
-      getReliefs(
-        `https://camps.runasp.net/reliefregister?query=${encodeURIComponent(
-          query
-        )}`
-      );
+      getReliefs();
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  async function getReliefs(url) {
+  async function getReliefs() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setRelifes(data);
-      } else throw new Error("error" + resp.status);
+      let resp = await reliefRegisterService.getAll();
+      setRelifes(resp.data);
     } catch (er) {
       console.error(er);
       return null;
@@ -71,20 +59,24 @@ export default function ReliefRegister() {
   }
 
   return (
-    relifes && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {relifes ? (
         <Table
           tableName={"تسجيل المساعدات"}
-          url={"reliefreg"}
           list={relifes}
           columnsToExclude={columnsToExclude}
+          url={"reliefreg"}
           searchValue={query}
           setSearchValue={setQuery}
           hidebtn={hidebtn}
           hideactions={hideactions}
           showconfirm={showconfirm}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

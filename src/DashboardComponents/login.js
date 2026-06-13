@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import { User, Lock } from "lucide-react";
+import { authService } from "../services/apiService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,22 +20,10 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const resp = await fetch("https://camps.runasp.net/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userdata),
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        localStorage.setItem("token", data);
-        navigate("/", { replace: true });
-        window.location.reload();
-      } else {
-        throw new Error("Unauthorized");
-      }
+      const data = await authService.login(userdata);
+      localStorage.setItem("token", data.data);
+      navigate("/", { replace: true });
+      window.location.reload();
     } catch (error) {
       Swal.fire({
         icon: "error",

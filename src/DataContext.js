@@ -1,6 +1,11 @@
-import { use, useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { createContext, useState } from "react";
 import { TokenContext } from "./TokenContext";
+import {
+  campService,
+  campManagerService,
+  displacementService,
+} from "./services/apiService";
 
 export let DataContext = createContext();
 export function DataContextProvider(props) {
@@ -12,66 +17,43 @@ export function DataContextProvider(props) {
 
   useEffect(() => {
     async function GetAll() {
-      await getCamps("https://camps.runasp.net/allcamp");
-      //  await getCampManagers("https://camps.runasp.net/campmanagers")
-      //  await getDisplacments("https://camps.runasp.net/displacement")
+      await getCamps();
     }
     GetAll();
-  }, [0]);
+  }, [token]);
 
-  async function getCamps(url) {
+  async function getCamps() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setCamps(data);
-      } else throw new Error("error" + resp.status);
-    } catch (er) {
-      console.error(er);
+      const response = await campService.getAllOtherCamps();
+      if (response.data) {
+        setCamps(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching camps:", error);
       return null;
     }
   }
 
-  async function getCampManagers(url) {
+  async function getCampManagers() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setCampManagers(data);
-      } else throw new Error("error" + resp.status);
-    } catch (er) {
-      console.error(er);
+      const response = await campManagerService.getAll();
+      if (response.data) {
+        setCampManagers(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching camp managers:", error);
       return null;
     }
   }
 
-  async function getDisplacments(url) {
+  async function getDisplacments() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setDisplacments(data);
-      } else throw new Error("error" + resp.status);
-    } catch (er) {
-      console.error(er);
+      const response = await displacementService.getAll();
+      if (response.data) {
+        setDisplacments(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching displacements:", error);
       return null;
     }
   }

@@ -2,13 +2,15 @@ import React, { useContext, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../AuthProvider";
 import { useNavigate } from "react-router-dom";
-import { TokenContext } from "../../TokenContext";
+import {
+  distributionCriteriaService,
+  organizationService,
+  healthIssuesService,
+} from "../../services/apiService";
 
 export default function AddDisCriteria() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  // const token = localStorage.getItem("token");
-  const { token } = useContext(TokenContext);
 
   const [org, setOrg] = useState([]);
   const [healthIssues, setHealth] = useState([]);
@@ -41,12 +43,12 @@ export default function AddDisCriteria() {
           isItwidows: false,
           gender: "",
           healthIssues: 0,
-        }
+        },
   );
 
   useEffect(() => {
-    GetOrganizations("https://camps.runasp.net/organization");
-    GetHealthIssues("https://camps.runasp.net/healthisuues");
+    GetOrganizations();
+    GetHealthIssues();
   }, []);
 
   function handleRefChange(event) {
@@ -67,24 +69,13 @@ export default function AddDisCriteria() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (user.role == "OrganizationManager") {
+    if (user.role === "OrganizationManager") {
       criteria.orgId = org?.id;
     }
-    console.log(org);
 
-    const response = await fetch(
-      "https://camps.runasp.net/distributioncriteria",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(criteria),
-      }
-    );
+    try {
+      await distributionCriteriaService.create(criteria);
 
-    if (response.ok) {
       Swal.fire({
         icon: "success",
         title: "تمت الإضافة!",
@@ -104,65 +95,49 @@ export default function AddDisCriteria() {
         });
         navigate("..");
       });
-    } else if (response.status === 400) {
-      const errorMessage = await response.text();
-      if (errorMessage.includes("name")) {
+    } catch (error) {
+      const status = error?.response?.status;
+      const errorMessage = error?.response?.data || "";
+
+      if (status === 400) {
+        if (errorMessage.includes("name")) {
+          Swal.fire({
+            icon: "warning",
+            title: "تنبيه!",
+            text: "اسم المعيار مكرر أو غير صالح!",
+            confirmButtonText: "فهمت",
+          });
+        } else if (errorMessage.includes("cer")) {
+          Swal.fire({
+            icon: "warning",
+            title: "تنبيه!",
+            text: "بيانات المعيار مكررة!",
+            confirmButtonText: "فهمت",
+          });
+        }
+      } else {
         Swal.fire({
-          icon: "warning",
-          title: "تنبيه!",
-          text: "اسم المعيار مكرر أو غير صالح! ",
-          confirmButtonText: "فهمت",
-        });
-      } else if (errorMessage.includes("cer")) {
-        Swal.fire({
-          icon: "warning",
-          title: "تنبيه!",
-          text: "بيانات  المعيار مكررة ! ",
-          confirmButtonText: "فهمت",
+          icon: "error",
+          title: "حدث خطأ!",
+          text: "يرجى المحاولة لاحقًا",
         });
       }
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "حدث خطأ!",
-        text: "يرجى المحاولة لاحقًا",
-      });
     }
   }
 
-  async function GetOrganizations(url) {
+  async function GetOrganizations() {
     try {
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        setOrg(data);
-      } else throw new Error("error " + resp.status);
+      const resp = await organizationService.getAll();
+      setOrg(resp.data);
     } catch (er) {
       console.error(er);
     }
   }
 
-  async function GetHealthIssues(url) {
+  async function GetHealthIssues() {
     try {
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        setHealth(data);
-      } else throw new Error("error " + resp.status);
+      const resp = await healthIssuesService.getAll();
+      setHealth(resp.data);
     } catch (er) {
       console.error(er);
     }
@@ -200,7 +175,6 @@ export default function AddDisCriteria() {
               onChange={handleRefChange}
               type="number"
               min={0}
-              minLength={0}
               name="minimumFamilySize"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
               placeholder="ادخل العدد"
@@ -221,6 +195,7 @@ export default function AddDisCriteria() {
               required
             />
           </div>
+
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
               عدد الاطفال اقل من 3 سنوات
@@ -229,7 +204,6 @@ export default function AddDisCriteria() {
               onChange={handleRefChange}
               type="number"
               min={0}
-              minLength={0}
               name="numOfChildrenYoungerthan3"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
               placeholder="عدد الاطفال اقل من 3 سنوات"
@@ -245,7 +219,6 @@ export default function AddDisCriteria() {
               onChange={handleRefChange}
               type="number"
               min={0}
-              minLength={0}
               name="numOfOldMen"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
               placeholder="عدد كبار السن"
@@ -305,7 +278,6 @@ export default function AddDisCriteria() {
             </label>
             <select
               name="healthIssues"
-              required={false}
               value={criteria.healthIssues}
               onChange={handleRefChange}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"

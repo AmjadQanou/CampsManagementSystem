@@ -1,5 +1,5 @@
 const config = {
-  API_BASE_URL: "https://camps.runasp.net",
+  API_BASE_URL: "http://handsofhope.runasp.net/",
 };
 
 export default config;

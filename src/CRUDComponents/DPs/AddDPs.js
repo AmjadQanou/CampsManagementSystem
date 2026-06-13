@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../AuthProvider";
-import { TokenContext } from "../../TokenContext";
+import { campService, dpService } from "../../services/apiService";
 
 export default function AddDPs() {
   const { user } = useContext(AuthContext);
@@ -31,11 +31,8 @@ export default function AddDPs() {
     Childrenyoungrethan1Y: 0,
     Childrenyoungrethan9Y: 0,
     approved: false,
-
     CampId: 0,
   });
-  // let token= localStorage.getItem("token")
-  const { token } = useContext(TokenContext);
 
   const role = user.role;
   const id = user.id;
@@ -43,9 +40,7 @@ export default function AddDPs() {
   const [showRestOfFields, setShowRestOfFields] = useState(false);
   const [Camp, setCamp] = useState([]);
   const [disa, setDisa] = useState(false);
-  const [showIde, setShowID] = useState({
-    HeadIdentityNo: "",
-  });
+  const [showIde, setShowID] = useState({ HeadIdentityNo: "" });
   const [dp, setDp] = useState();
   const { Identificationnumber, RelationToFamilyHead, IdentityNo } = DPs;
 
@@ -56,112 +51,68 @@ export default function AddDPs() {
       [name]: type === "checkbox" ? checked : value,
     }));
   }
+
   function handleHeadChange(e) {
     const { name, value } = e.target;
-    setShowID((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setShowID((prev) => ({ ...prev, [name]: value }));
   }
+
   useEffect(() => {
-    if (role == "DPs") {
+    if (role === "DPs") {
       getDp();
     } else {
       getCamp();
     }
-  }, [0]);
+  }, []);
 
   async function getDp() {
-    const response = await fetch("https://camps.runasp.net/dps", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setDPs(data);
-    } else {
-      console.log("error");
+    try {
+      const response = await dpService.getAll();
+      setDPs(response.data);
+    } catch (error) {
+      console.log("error", error);
     }
   }
 
   async function getCamp() {
-    const res = await fetch("https://camps.runasp.net/camp", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setCamp(data);
-    } else {
-      console.log("camperror");
+    try {
+      const res = await campService.getAll();
+      setCamp(res.data);
+    } catch (error) {
+      console.log("camperror", error);
     }
   }
-  async function hundleSubmit(e) {
-    e.preventDefault();
-    console.log(Camp);
 
-    if ((role != "SystemManager" || role != "CampManager") && dp) {
+  async function hundleSubmit(e) {
+    if (e) e.preventDefault();
+
+    if ((role !== "SystemManager" || role !== "CampManager") && dp) {
       DPs.ParentId = id;
       DPs.Identificationnumber = dp.Identificationnumber;
       DPs.CampId = dp.CampId;
-    } else if (role == "CampManager") {
+    } else if (role === "CampManager") {
       DPs.CampId = Camp[0].id;
     }
+
     try {
-      console.log(DPs);
-      console.log(token);
+      await dpService.create(DPs);
 
-      const response = await fetch("https://camps.runasp.net/dps", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(DPs),
+      Swal.fire({
+        icon: "success",
+        title: "تم إضافة النازح بنجاح",
+        text: "تم إضافة النازح إلى قاعدة البيانات.",
       });
-
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تم إضافة النازح بنجاح",
-          text: "تم إضافة النازح إلى قاعدة البيانات.",
-        });
-        naviagte("..");
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "حدث خطأ",
-          text: "لم يتم إضافة النازح. حاول مرة أخرى.",
-        });
-      }
+      naviagte("..");
     } catch (error) {
       console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "حدث خطأ",
-        text: "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.",
+        text: "لم يتم إضافة النازح. حاول مرة أخرى.",
       });
     }
   }
-  async function fetchIdentification() {
-    const response = await fetch(
-      `https://camps.runasp.net/dps/by-identification/${Identificationnumber}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response;
-  }
+
   async function handleNext() {
     if (!RelationToFamilyHead) {
       Swal.fire({
@@ -172,108 +123,84 @@ export default function AddDPs() {
     }
 
     try {
-      console.log(Identificationnumber);
+      let isFound = false;
+      let existingDPData = null;
 
-      const response = await fetchIdentification();
-      const isFound = response.ok;
-
-      const response2 = await fetch(
-        `https://camps.runasp.net/dps/byidentity/${IdentityNo}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      let found = false;
-
-      if (response2.status === 400) {
-        Swal.fire({
-          icon: "warning",
-          title: "رقم الهوية موجود مسبقاً",
-          text: "رقم الهوية الذي أدخلته موجود بالفعل في النظام.",
-        });
-        return;
+      try {
+        const response =
+          await dpService.getByIdentification(Identificationnumber);
+        isFound = true;
+        existingDPData = response.data;
+        setExistingDP(existingDPData);
+      } catch {
+        isFound = false;
       }
 
-      found = response2.ok;
+      let found = false;
+      try {
+        await dpService.getByIdentity(IdentityNo);
+        found = true;
+      } catch (err) {
+        if (err?.response?.status === 400) {
+          Swal.fire({
+            icon: "warning",
+            title: "رقم الهوية موجود مسبقاً",
+            text: "رقم الهوية الذي أدخلته موجود بالفعل في النظام.",
+          });
+          return;
+        }
+        found = false;
+      }
 
       if (isFound) {
-        await response.json().then((data) => setExistingDP(data));
-        console.log(existingDP);
-        if (existingDP != null) {
-          if (RelationToFamilyHead !== "هو نفسه") {
-            if (!found) {
+        if (existingDPData && RelationToFamilyHead !== "هو نفسه") {
+          if (!found) {
+            Swal.fire({
+              icon: "info",
+              title: "رقم الهوية مسجل مسبقا",
+              text: `مسجل ${IdentityNo} النازح صاحب رقم الهوية`,
+            });
+          } else {
+            if (
+              showIde.HeadIdentityNo.toString().trim() ===
+                existingDPData.identityNo.toString().trim() &&
+              Identificationnumber.toString().trim() ===
+                existingDPData.identificationnumber.toString().trim()
+            ) {
+              DPs.ParentId = existingDPData.id;
+              DPs.CampId = existingDPData.campId;
+
               Swal.fire({
                 icon: "info",
-                title: "رقم الهوية مسجل مسبقا",
-                text: ` مسجل ${IdentityNo}النازح صاحب رقم الهوية`,
+                title: "الأسرة مرتبطة بهذا الشخص",
+                text: `${existingDPData.fname} ${existingDPData.lname} هذه الأسرة ترتبط بالشخص`,
+                confirmButtonText: "إضافة نازح",
+              }).then(async (result) => {
+                if (result.isConfirmed) {
+                  setDisa(false);
+                  try {
+                    await dpService.create(DPs);
+                    Swal.fire({
+                      icon: "success",
+                      title: "تم إضافة النازح بنجاح",
+                      text: "تم إضافة النازح إلى قاعدة البيانات.",
+                    });
+                    naviagte("..");
+                  } catch (error) {
+                    Swal.fire({
+                      icon: "error",
+                      title: "حدث خطأ",
+                      text: "لم يتم إضافة النازح. حاول مرة أخرى.",
+                    });
+                  }
+                }
               });
             } else {
-              if (
-                showIde.HeadIdentityNo.toString().trim() ==
-                  existingDP.identityNo.toString().trim() &&
-                Identificationnumber.toString().trim() ==
-                  existingDP.identificationnumber.toString().trim()
-              ) {
-                DPs.ParentId = existingDP.id;
-                DPs.CampId = existingDP.campId;
-                console.log(DPs);
-                Swal.fire({
-                  icon: "info",
-                  title: "الأسرة مرتبطة بهذا الشخص",
-                  text: ` ${existingDP.fname} ${existingDP.lname}  هذه الأسرة ترتبط بالشخص`,
-                  confirmButtonText: "إضافة نازح",
-                }).then(async (result) => {
-                  if (result.isConfirmed) {
-                    setDisa(false);
-
-                    try {
-                      const response = await fetch(
-                        "https://camps.runasp.net/dps",
-                        {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                          },
-                          body: JSON.stringify(DPs),
-                        }
-                      );
-
-                      if (response.ok) {
-                        Swal.fire({
-                          icon: "success",
-                          title: "تم إضافة النازح بنجاح",
-                          text: "تم إضافة النازح إلى قاعدة البيانات.",
-                        });
-                        naviagte("..");
-                      } else {
-                        Swal.fire({
-                          icon: "error",
-                          title: "حدث خطأ",
-                          text: "لم يتم إضافة النازح. حاول مرة أخرى.",
-                        });
-                      }
-                    } catch (error) {
-                      console.error("Error:", error);
-                      Swal.fire({
-                        icon: "error",
-                        title: "حدث خطأ",
-                        text: "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.",
-                      });
-                    }
-                  }
-                });
-              } else {
-                Swal.fire({
-                  icon: "info",
-                  title: "رقم هوية خاطئ او رقم تعريف خاطئ",
-                  text: "لا يمكن ربط العلاقة بشخص ليس رب الأسرة.",
-                });
-              }
+              Swal.fire({
+                icon: "info",
+                title: "رقم هوية خاطئ او رقم تعريف خاطئ",
+                text: "لا يمكن ربط العلاقة بشخص ليس رب الأسرة.",
+              });
             }
           }
         }
@@ -281,22 +208,22 @@ export default function AddDPs() {
         if (RelationToFamilyHead === "هو نفسه") {
           if (!found) {
             setDisa(false);
-
             Swal.fire({
               icon: "info",
               title: "رب الاسرة مسجل مسبقا",
-              text: "  رقم التعريف موجود",
+              text: "رقم التعريف موجود",
             });
           } else {
             setShowRestOfFields(true);
             setDisa(true);
           }
-        } else
+        } else {
           Swal.fire({
             icon: "error",
             title: "رقم التعريف غير موجود",
             text: `لا يوجد شخص برقم التعريف ${Identificationnumber}.`,
           });
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -364,7 +291,7 @@ export default function AddDPs() {
 
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
-              العلاقة برئيس الأسرة
+              الجنس
             </label>
             <select
               name="gender"
@@ -415,30 +342,28 @@ export default function AddDPs() {
             value={DPs.IdentityNo || ""}
             onChange={handleChange}
           />
-          {role == "SystemManager" || role == "CampManager" ? (
+
+          {(role === "SystemManager" || role === "CampManager") && (
             <Input
               name="Identificationnumber"
-              disabled={DPs.RelationToFamilyHead == "هو نفسه"}
+              disabled={DPs.RelationToFamilyHead === "هو نفسه"}
               label="رقم التعريف"
               value={DPs.Identificationnumber || ""}
               onChange={handleChange}
             />
-          ) : (
-            ""
           )}
-          {role == "SystemManager" || role == "CampManager" ? (
+
+          {(role === "SystemManager" || role === "CampManager") && (
             <Input
               name="HeadIdentityNo"
-              disabled={DPs.RelationToFamilyHead == "هو نفسه"}
+              disabled={DPs.RelationToFamilyHead === "هو نفسه"}
               label="رقم هوية رب الاسرة"
               value={showIde.HeadIdentityNo || ""}
               onChange={handleHeadChange}
             />
-          ) : (
-            ""
           )}
 
-          {role == "SystemManager" ? (
+          {role === "SystemManager" && (
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
                 المخيم
@@ -459,9 +384,8 @@ export default function AddDPs() {
                 ))}
               </select>
             </div>
-          ) : (
-            ""
           )}
+
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
               العلاقة برئيس الأسرة
@@ -496,17 +420,20 @@ export default function AddDPs() {
               <button
                 type="button"
                 onClick={() => {
-                  if (role == "SystemManager" || role == "CampManager") {
+                  if (role === "SystemManager" || role === "CampManager") {
                     handleNext();
-                  } else hundleSubmit();
+                  } else {
+                    hundleSubmit();
+                  }
                 }}
                 className="bg-[#DC7F56] block hover:bg-[#c46b45] text-white font-semibold px-10 py-3 rounded-full shadow-md transition-all duration-300"
               >
-                {role == "SystemManager" || role == "CampManager"
+                {role === "SystemManager" || role === "CampManager"
                   ? "التالي"
                   : "تسجيل"}
               </button>
             </div>
+
             {showRestOfFields && (
               <div className="mt-10">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">

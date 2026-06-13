@@ -3,61 +3,55 @@ import Table from "../CRUDComponents/Table";
 import { useState } from "react";
 import ReliefTable from "../CRUDComponents/ReliefTable";
 import { AuthContext } from "../AuthProvider";
-import { TokenContext } from "../TokenContext";
-import { DataContext } from "../DataContext";
+import { campService } from "../services/apiService";
 
 export default function Camps() {
-  const columnsToExclude = ["dPs", "reliefRegisters", "campManager"];
+  const columnsToExclude = [
+    "dPs",
+    "reliefRegisters",
+    "campManager",
+    "imageUrl",
+  ];
   const [hidebtn, sethidebtn] = useState(false);
   const [hideactions, sethideActions] = useState(false);
   const { user } = useContext(AuthContext);
-  const { token } = useContext(TokenContext);
-  const [Camps, setCamps] = useState([]);
+  const [Camps, setCamps] = useState();
+
   useEffect(() => {
     if (user.role == "OrganizationManager") {
       sethideActions(true);
       sethidebtn(true);
     }
-  }, [0]);
+  }, [user.role]);
 
   useEffect(() => {
-    async function get() {
-      await getCamps("https://camps.runasp.net/DisCamps");
-    }
-    get();
-  }, [Camps.length]);
+    getCamps();
+  }, []);
 
-  async function getCamps(url) {
+  const [loading, setLoading] = useState(true);
+
+  async function getCamps() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-
-        setCamps(data);
-      } else throw new Error("error" + resp.status);
-    } catch (er) {
-      console.error(er);
-      return null;
+      const response = await campService.getOtherCamps();
+      setCamps(response.data);
+    } catch (error) {
+      console.error("Error fetching camps:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
+  // in JSX
+  if (loading) return <div>جاري التحميل...</div>;
   return (
-    Camps && (
-      <div>
-        <ReliefTable
-          tableName={"مخيمات"}
-          list={Camps}
-          columnsToExclude={columnsToExclude}
-          hidebtn={hidebtn}
-          hideactions={hideactions}
-        />
-      </div>
-    )
+    <div>
+      <ReliefTable
+        tableName={"مخيمات"}
+        list={Camps}
+        columnsToExclude={columnsToExclude}
+        hidebtn={hidebtn}
+        hideactions={hideactions}
+      />
+    </div>
   );
 }

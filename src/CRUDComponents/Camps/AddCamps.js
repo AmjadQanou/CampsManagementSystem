@@ -2,12 +2,12 @@ import React, { useContext, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { campManagerService, campService } from "../../services/apiService";
 
 export default function AddCamp() {
   const [campManagers, setCampManagers] = useState([]);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
 
   const [camp, setCamp] = useState({
     name: "",
@@ -23,7 +23,7 @@ export default function AddCamp() {
 
   useEffect(() => {
     if (user?.role === "SystemManager") {
-      fetchCampManagers("https://camps.runasp.net/campmanagers");
+      fetchCampManagers();
     }
   }, [user]);
 
@@ -62,66 +62,44 @@ export default function AddCamp() {
     }
 
     try {
-      const response = await fetch("https://camps.runasp.net/camp", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      await campService.create(formData);
 
-      if (response.ok) {
+      Swal.fire({
+        icon: "success",
+        title: "تمت الإضافة!",
+        text: "تم إضافة المخيم بنجاح 🎉",
+        confirmButtonColor: "#DC7F56",
+      }).then(() => {
+        navigate("..");
+      });
+    } catch (error) {
+      const errText = error?.response?.data || "";
+      if (errText.includes("name arleady exists")) {
         Swal.fire({
-          icon: "success",
-          title: "تمت الإضافة!",
-          text: "تم إضافة المخيم بنجاح 🎉",
-          confirmButtonColor: "#DC7F56",
-        }).then(() => {
-          navigate("..");
+          icon: "error",
+          title: "خطأ",
+          text: "اسم المخيم موجود بالفعل",
+        });
+      } else if (errText.includes("campManager already has an camp")) {
+        Swal.fire({
+          icon: "error",
+          title: "خطأ",
+          text: "هذا المدير مرتبط بمخيم آخر",
         });
       } else {
-        const err = await response.text();
-        if (err.includes("name arleady exists")) {
-          Swal.fire({
-            icon: "error",
-            title: "خطأ",
-            text: "اسم المخيم موجود بالفعل",
-          });
-        } else if (err.includes("campManager already has an camp")) {
-          Swal.fire({
-            icon: "error",
-            title: "خطأ",
-            text: "هذا المدير مرتبط بمخيم آخر",
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "حدث خطأ",
-            text: "يرجى المحاولة لاحقًا",
-          });
-        }
+        Swal.fire({
+          icon: "error",
+          title: "حدث خطأ",
+          text: "يرجى المحاولة لاحقًا",
+        });
       }
-    } catch (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "فشل الاتصال",
-        text: "تعذر الاتصال بالخادم",
-      });
     }
   };
 
-  const fetchCampManagers = async (url) => {
+  const fetchCampManagers = async () => {
     try {
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      setCampManagers(data);
+      const res = await campManagerService.getAll();
+      setCampManagers(res.data);
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -201,7 +179,6 @@ export default function AddCamp() {
               value={camp.numOfBaths}
               onChange={handleChange}
               required
-              minLength={0}
               min={0}
               placeholder="ادخل عدد الحمامات"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -217,7 +194,6 @@ export default function AddCamp() {
               name="numOfWaterGallons"
               value={camp.numOfWaterGallons}
               min={0}
-              minLength={0}
               onChange={handleChange}
               required
               placeholder="ادخل عدد جالونات الماء"

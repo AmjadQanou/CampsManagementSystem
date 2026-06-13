@@ -12,11 +12,16 @@ import {
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar, Doughnut, Pie } from "react-chartjs-2";
 import Swal from "sweetalert2";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { TokenContext } from "../TokenContext";
 import CampFlag from "../CampFlag";
-import { motion } from "framer-motion";
-
+import {
+  campManagerService,
+  campService,
+  dpService,
+  organizationService,
+  reliefRegisterService,
+} from "../services/apiService";
 ChartJS.register(
   BarElement,
   CategoryScale,
@@ -24,7 +29,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   ArcElement,
-  ChartDataLabels
+  ChartDataLabels,
 );
 
 export default function Mycamp() {
@@ -39,6 +44,7 @@ export default function Mycamp() {
   const [reliefs, setReliefs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [weatherData, setWeatherData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (id) {
@@ -72,16 +78,11 @@ export default function Mycamp() {
         for (const relief of reliefs) {
           if (relief.orgManagerId && !names[relief.orgManagerId]) {
             try {
-              const res = await fetch(
-                `https://camps.runasp.net/organization/bymanager/${relief.orgManagerId}`,
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                }
+              const res = await organizationService.getByManager(
+                relief.orgManagerId,
               );
-              const data = await res.json();
-              names[relief.orgManagerId] = data.name;
+              names[relief.orgManagerId] = res.data.name;
             } catch (err) {
-              console.error(err);
               names[relief.orgManagerId] = "غير محدد";
             }
           }
@@ -124,14 +125,8 @@ export default function Mycamp() {
 
   const fetchReliefs = async (campId) => {
     try {
-      const res = await fetch(
-        `https://camps.runasp.net/relief/bycamp/${campId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
-      setReliefs(data);
+      const res = await reliefRegisterService.getByCamp(campId);
+      setReliefs(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -139,100 +134,74 @@ export default function Mycamp() {
 
   const fetchCamp = async () => {
     try {
-      const res = await fetch("https://camps.runasp.net/camp", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setCamp(data);
-      if (data.length > 0) {
-        fetchDPs(data[0].id);
+      const res = await campService.getAll();
+      setCamp(res.data);
+      if (res.data.length > 0) {
+        fetchDPs();
       }
     } catch (err) {
       console.error(err);
     }
   };
-
   const fetchCampByid = async () => {
     try {
-      const res = await fetch(`https://camps.runasp.net/camp/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setCamp(data);
-      fetchDPsC(data.id);
+      const res = await campService.getById(id);
+      setCamp(res.data);
+      fetchDPsC(res.data.id);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchDPsC = async (id) => {
+  const fetchDPsC = async (campId) => {
     try {
-      const res = await fetch(`https://camps.runasp.net/dps/byCamp/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setDps(data);
+      const res = await dpService.getByCamp(campId);
+      setDps(res.data);
     } catch (err) {
       console.error(err);
     }
   };
-
   const fetchCampManager = async () => {
-    console.log(user);
-
     try {
-      const res = await fetch(
-        `https://camps.runasp.net/campmanager/${user.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
-      setCampManager(data);
+      const res = await campManagerService.getById(user.id);
+      setCampManager(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("fetchCampManager error:", err);
     }
   };
-
   const fetchDPs = async () => {
     try {
-      const res = await fetch("https://camps.runasp.net/dps", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setDps(data);
+      const res = await dpService.getAll();
+      setDps(res.data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleClick = () => {
-    console.log(campManager);
+  const handleClick = async () => {
+    try {
+      const res = await campManagerService.getById(user.id);
+      const freshManager = res.data;
+      setCampManager(freshManager);
 
-    if (campManager.approved) {
-      window.location.href = "/dashboard/Camps/add";
-    } else {
+      if (freshManager.approved) {
+        navigate("/dashboard/Camps/add");
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "غير مصرح",
+          text: "انت غير مصرح بعد لانشاء مخيم",
+          confirmButtonText: "رجوع",
+        });
+      }
+    } catch {
       Swal.fire({
-        icon: "warning",
-        title: "غير مصرح",
-        text: "انت غير مصرح بعد لانشاء مخيم",
+        icon: "error",
+        title: "خطأ",
+        text: "تعذر التحقق من صلاحياتك، يرجى المحاولة لاحقاً",
         confirmButtonText: "رجوع",
       });
     }
-  };
-
-  const calculateAge = (dob) => {
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-    return age;
   };
 
   const childrenCount = {
@@ -278,12 +247,7 @@ export default function Mycamp() {
       {campInfo ? (
         <div className="space-y-6">
           {/* Header Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative"
-          >
+          <div className="relative">
             <CampFlag campName={campInfo.name} />
             <div className="bg-white rounded-xl shadow-sm p-6 mt-4 border-l-4 border-[#DC7F56] flex justify-between items-start">
               <div>
@@ -326,7 +290,7 @@ export default function Mycamp() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Stats Grid with Improved Design */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -372,9 +336,9 @@ export default function Mycamp() {
                     onClick={() =>
                       window.open(
                         `https://www.google.com/maps?q=${encodeURIComponent(
-                          campInfo.location
+                          campInfo.location,
                         )}`,
-                        "_blank"
+                        "_blank",
                       )
                     }
                   >
@@ -404,7 +368,7 @@ export default function Mycamp() {
                     allowFullScreen
                     referrerPolicy="no-referrer-when-downgrade"
                     src={`https://www.google.com/maps?q=${encodeURIComponent(
-                      campInfo.location
+                      campInfo.location,
                     )}&output=embed&zoom=14`}
                   ></iframe>
                 </div>
@@ -504,7 +468,7 @@ export default function Mycamp() {
                     <p className="text-2xl font-bold text-gray-700">
                       {dps.reduce(
                         (sum, dp) => sum + dp.numOfMales + dp.numOfFemales,
-                        0
+                        0,
                       )}
                     </p>
                     <p className="text-sm text-gray-500">إجمالي النازحين</p>
@@ -568,7 +532,7 @@ export default function Mycamp() {
                       datasets: [
                         {
                           data: tentStatusLabels.map(
-                            (label) => tentStatusCount[label]
+                            (label) => tentStatusCount[label],
                           ),
                           backgroundColor: ["#A6B78D", "#DC7F56", "#A6B78D80"],
                           borderWidth: 0,
@@ -603,8 +567,8 @@ export default function Mycamp() {
                             index === 0
                               ? "#A6B78D"
                               : index === 1
-                              ? "#DC7F56"
-                              : "#A6B78D80",
+                                ? "#DC7F56"
+                                : "#A6B78D80",
                         }}
                       ></div>
                       <span className="mr-10 text-sm font-medium">
@@ -619,12 +583,7 @@ export default function Mycamp() {
           </div>
 
           {/* Reliefs Table with Improved Design */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl shadow-sm overflow-hidden"
-          >
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-xl font-bold text-[#DC7F56]">
                 المساعدات المستلمة
@@ -735,16 +694,12 @@ export default function Mycamp() {
                 </tbody>
               </table>
             </div>
-          </motion.div>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 100 }}
-          >
-            <div className="bg-white p-8 rounded-xl shadow-sm max-w-md mx-auto">
+          <div>
+            <div className="bg-white p-8 rounded-xl border border-gray-200 max-w-md mx-auto">
               <svg
                 className="w-16 h-16 mx-auto text-gray-400"
                 fill="none"
@@ -764,40 +719,42 @@ export default function Mycamp() {
               <p className="text-gray-600 mb-6">
                 يمكنك إضافة مخيم جديد بعد الحصول على الموافقة من المدير
               </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={handleClick}
-                className="bg-[#DC7F56] hover:bg-[#c46b45] text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2 mx-auto"
+                className="bg-[#DC7F56] hover:bg-[#c46b45] text-white font-semibold px-8 py-3 rounded-md transition-colors flex items-center gap-2 mx-auto"
               >
                 <PlusIcon />
                 إضافة مخيم جديد
-              </motion.button>
+              </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-const StatCard = ({ title, value, icon, color, unit }) => (
-  <motion.div
-    whileHover={{ y: -5 }}
-    className={`bg-gradient-to-r ${color} text-white rounded-xl shadow-md overflow-hidden`}
-  >
-    <div className="p-5 flex justify-between items-center">
-      <div>
-        <p className="text-sm font-medium opacity-90">{title}</p>
-        <div className="flex items-center gap-1">
-          {unit && <span className="text-sm opacity-80">{unit}</span>}
-          <p className="text-2xl font-bold mt-1">{value || 0}</p>
+const StatCard = ({ title, value, icon, color, unit }) => {
+  // Map the gradient color prop to a simple accent hex for the border
+  const accentColor = color.includes("DC7F56") ? "#DC7F56" : "#A6B78D";
+  return (
+    <div
+      className="bg-white border border-gray-200 rounded-xl overflow-hidden"
+      style={{ borderLeft: `4px solid ${accentColor}` }}
+    >
+      <div className="p-5 flex justify-between items-center">
+        <div>
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <div className="flex items-center gap-1 mt-1">
+            <p className="text-2xl font-bold text-gray-800">{value || 0}</p>
+            {unit && <span className="text-sm text-gray-400 ml-1">{unit}</span>}
+          </div>
         </div>
+        <div className="p-3 rounded-lg bg-gray-100 text-gray-500">{icon}</div>
       </div>
-      <div className="p-3 rounded-lg  bg-opacity-20">{icon}</div>
     </div>
-  </motion.div>
-);
+  );
+};
 
 const ChartCard = ({ title, description, children }) => (
   <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">

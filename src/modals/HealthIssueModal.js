@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { healthIssuesService } from "../services/apiService";
 
 export default function HealthIssueModal({
   isOpen,
@@ -20,13 +21,8 @@ export default function HealthIssueModal({
 
   const fetchHealthIssues = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const resp = await fetch("https://camps.runasp.net/healthisuues", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!resp.ok) throw new Error("Failed to fetch health issues");
-      const data = await resp.json();
-      setHealthIssues(data);
+      const resp = await healthIssuesService.getAll();
+      setHealthIssues(resp.data);
     } catch (err) {
       console.error(err);
       Swal.fire("خطأ", "فشل تحميل المشاكل الصحية", "error");

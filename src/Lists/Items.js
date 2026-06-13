@@ -2,10 +2,9 @@ import React, { useContext, useEffect, useState } from "react";
 import Table from "../CRUDComponents/Table";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { itemService } from "../services/apiService";
 
 export default function Items() {
-  const { token } = useContext(TokenContext);
-
   const [items, setItems] = useState();
   const [query, setQuery] = useState("");
   const [hidebtn, sethidebtn] = useState(false);
@@ -15,18 +14,16 @@ export default function Items() {
 
   const columnsToExclude = ["reliefRegisters"];
   useEffect(() => {
-    if (user.role == "CampManager") {
+    if (user.role === "CampManager") {
       sethideActions(true);
       sethidebtn(true);
     }
     const delayDebounce = setTimeout(() => {
-      GetItems(
-        `https://camps.runasp.net/item?query=${encodeURIComponent(query)}`
-      );
+      GetItems();
     }, 500);
 
     return () => clearTimeout(delayDebounce);
-  }, [query]);
+  }, [query, user.role]);
   // let token=localStorage.getItem("token")
 
   // const handleDelete = async (id) => {
@@ -41,37 +38,26 @@ export default function Items() {
   //   }
   // };
 
-  async function GetItems(url) {
+  async function GetItems() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setItems(data);
-      } else throw new Error("error" + resp.status);
+      let resp = await itemService.getAll();
+      setItems(resp.data);
     } catch (er) {
       console.error(er);
       return null;
     }
   }
   return (
-    items && (
-      <div>
-        <Table
-          tableName={"مساعدات"}
-          list={items}
-          columnsToExclude={columnsToExclude}
-          searchValue={query}
-          setSearchValue={setQuery}
-          hidebtn={hidebtn}
-          hideactions={hideactions}
-        />
-      </div>
-    )
+    <div>
+      <Table
+        tableName={"مساعدات"}
+        list={items}
+        columnsToExclude={columnsToExclude}
+        searchValue={query}
+        setSearchValue={setQuery}
+        hidebtn={hidebtn}
+        hideactions={hideactions}
+      />
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Table from "../CRUDComponents/Table";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { healthIssuesService } from "../services/apiService";
 
 export default function HealthIssues() {
   const { token } = useContext(TokenContext);
@@ -17,36 +18,23 @@ export default function HealthIssues() {
       sethidebtn(true);
     }
     const delayDebounce = setTimeout(() => {
-      GetHealthIssues(
-        `https://camps.runasp.net/healthisuues?query=${encodeURIComponent(
-          query
-        )}`
-      );
+      GetHealthIssues();
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  async function GetHealthIssues(url) {
+  async function GetHealthIssues() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setHealthIssues(data);
-      } else throw new Error("error" + resp.status);
+      let resp = await healthIssuesService.getAll();
+      setHealthIssues(resp.data);
     } catch (er) {
       console.error(er);
       return null;
     }
   }
   return (
-    healthIssues && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {healthIssues ? (
         <Table
           tableName={"الامراض"}
           list={healthIssues}
@@ -56,7 +44,11 @@ export default function HealthIssues() {
           hidebtn={hidebtn}
           hideactions={hideactions}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

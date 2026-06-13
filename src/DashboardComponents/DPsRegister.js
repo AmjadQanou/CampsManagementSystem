@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import { UserPlus, Mail, Lock, IdCard, KeyRound } from "lucide-react";
+import { campService, dpService, authService } from "../services/apiService";
 
 export default function DPsRegister() {
-  let token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [register, setRegister] = useState({
     username: "",
@@ -33,46 +33,24 @@ export default function DPsRegister() {
   }
 
   async function getCamp() {
-    const res = await fetch("https://camps.runasp.net/campsreg", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      await setCamp(data);
+    try {
+      const res = await campService.getAllForRegistration();
+      setCamp(res.data);
+    } catch (err) {
+      console.error("Failed to fetch camps:", err);
     }
   }
 
   async function GetDpByIdentityNo() {
-    const res = await fetch(
-      `https://camps.runasp.net/dps/byidentityreg/${register.IdentityNo}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await res.json();
-    setDp(data);
+    const res = await dpService.getByIdentityRegistration(register.IdentityNo);
+    setDp(res.data);
   }
 
   async function PostRegister() {
     try {
-      const response = await fetch("https://camps.runasp.net/registerDp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(register),
-      });
+      const response = await authService.registerDP(register);
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         Swal.fire({
           icon: "success",
           title: "تم التسجيل",
@@ -80,14 +58,14 @@ export default function DPsRegister() {
         });
         navigate("/login");
       } else {
-        const errorText = await response.text();
-        if (errorText.includes("UserName")) {
+        const errorText = response.data;
+        if (errorText?.includes?.("UserName")) {
           Swal.fire({
             icon: "error",
             title: "اسم المستخدم موجود مسبقا",
             text: "لم يتم إضافة التسجيل. حاول مرة أخرى.",
           });
-        } else if (errorText.includes("Dp")) {
+        } else if (errorText?.includes?.("Dp")) {
           Swal.fire({
             icon: "warning",
             title: "الشخص غير مقبول",
@@ -96,12 +74,27 @@ export default function DPsRegister() {
         }
       }
     } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "حدث خطأ",
-        text: "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.",
-      });
+      const errorText = error.response?.data;
+      if (typeof errorText === "string" && errorText.includes("UserName")) {
+        Swal.fire({
+          icon: "error",
+          title: "اسم المستخدم موجود مسبقا",
+          text: "لم يتم إضافة التسجيل. حاول مرة أخرى.",
+        });
+      } else if (typeof errorText === "string" && errorText.includes("Dp")) {
+        Swal.fire({
+          icon: "warning",
+          title: "الشخص غير مقبول",
+          text: `رقم الهوية او الرقم التعريفي خطأ`,
+        });
+      } else {
+        console.error("Error:", error);
+        Swal.fire({
+          icon: "error",
+          title: "حدث خطأ",
+          text: "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.",
+        });
+      }
     }
   }
 

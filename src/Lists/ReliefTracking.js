@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Table from "../CRUDComponents/Table";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { reliefTrackingService } from "../services/apiService";
 
 export default function ReliefTracking() {
   const [reliefTracking, setReliefTracking] = useState();
@@ -17,40 +18,35 @@ export default function ReliefTracking() {
       sethideActions(true);
       sethidebtn(true);
     }
-    getReliefTraking("https://camps.runasp.net/relieftracking");
+    getReliefTraking();
   }, [0]);
 
-  async function getReliefTraking(url) {
+  async function getReliefTraking() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setReliefTracking(data);
-        console.log(columnsToExclude);
-      } else throw new Error("error" + resp.status);
+      let resp = await reliefTrackingService.getAll();
+      setReliefTracking(resp.data);
+      console.log(columnsToExclude);
     } catch (er) {
       console.error(er);
       return null;
     }
   }
   return (
-    reliefTracking && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {reliefTracking ? (
         <Table
           tableName={"تتبع المساعدات"}
-          url={"relietracking"}
           list={reliefTracking}
           columnsToExclude={columnsToExclude}
+          url={"relietracking"}
           hidebtn={hidebtn}
           hideactions={hideactions}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

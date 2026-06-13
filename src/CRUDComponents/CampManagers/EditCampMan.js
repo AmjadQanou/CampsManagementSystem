@@ -1,19 +1,17 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { TokenContext } from "../../TokenContext";
+import { campManagerService } from "../../services/apiService";
 
 export default function EditCampManager() {
   const navigate = useNavigate();
   const { id } = useParams();
-  // let token = localStorage.getItem("token");
-  const { token } = useContext(TokenContext);
 
   function formatDateForInput(dateString) {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split("T")[0]; // Format date to "yyyy-mm-dd"
+    return date.toISOString().split("T")[0];
   }
 
   const [campManager, setCampManager] = useState({
@@ -35,30 +33,19 @@ export default function EditCampManager() {
   });
 
   useEffect(() => {
-    GetCampManager(`https://camps.runasp.net/campmanager/${id}`);
+    GetCampManager();
   }, [id]);
 
-  async function GetCampManager(url) {
+  async function GetCampManager() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const resp = await campManagerService.getById(id);
+      setCampManager(resp.data);
+      setInitialData({
+        username: resp.data.username,
+        email: resp.data.email,
       });
-
-      if (resp.ok) {
-        let data = await resp.json();
-        setCampManager(data);
-        setInitialData({
-          username: data.username,
-          email: data.email,
-        });
-      } else throw new Error("Error " + resp.status);
     } catch (err) {
       console.error(err);
-      return null;
     }
   }
 
@@ -84,34 +71,21 @@ export default function EditCampManager() {
     }
 
     try {
-      const allManagersResponse = await fetch(
-        "https://camps.runasp.net/campmanagers",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!allManagersResponse.ok)
-        throw new Error("Failed to fetch existing camp managers");
-
-      const existingManagers = await allManagersResponse.json();
+      const allManagersResponse = await campManagerService.getAll();
+      const existingManagers = allManagersResponse.data;
 
       let usernameExists = false;
       let emailExists = false;
 
       if (campManager.username !== initialData.username) {
         usernameExists = existingManagers.some(
-          (mgr) => mgr.username === campManager.username && mgr.id !== id
+          (mgr) => mgr.username === campManager.username && mgr.id !== id,
         );
       }
 
       if (campManager.email !== initialData.email) {
         emailExists = existingManagers.some(
-          (mgr) => mgr.email === campManager.email && mgr.id !== id
+          (mgr) => mgr.email === campManager.email && mgr.id !== id,
         );
       }
 
@@ -130,31 +104,16 @@ export default function EditCampManager() {
         return;
       }
 
-      const resp = await fetch(`https://camps.runasp.net/campmanager/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(campManager),
-      });
+      await campManagerService.update(id, campManager);
 
-      if (resp.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تم التعديل!",
-          text: "تم تعديل مدير المخيم بنجاح🎉",
-          confirmButtonText: "رجوع",
-        }).then(() => {
-          navigate("..");
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "حدث خطأ!",
-          text: "يرجى المحاولة لاحقًا",
-        });
-      }
+      Swal.fire({
+        icon: "success",
+        title: "تم التعديل!",
+        text: "تم تعديل مدير المخيم بنجاح🎉",
+        confirmButtonText: "رجوع",
+      }).then(() => {
+        navigate("..");
+      });
     } catch (err) {
       console.error(err);
       Swal.fire({
@@ -284,6 +243,7 @@ export default function EditCampManager() {
               placeholder="ادخل معلومات التواصل"
             />
           </div>
+
           <div className="flex items-center gap-3 mt-4">
             <input
               onChange={handleRefChange}

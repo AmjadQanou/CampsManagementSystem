@@ -14,7 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { ApiContext } from "../Context/ApiContext";
 import { TokenContext } from "../TokenContext";
-import axios from "axios";
+import { reliefRegisterService } from "../services/apiService";
 
 export default function OrganizationDetails() {
   const location = useLocation();
@@ -41,17 +41,15 @@ export default function OrganizationDetails() {
 
   const getReliefs = async (id) => {
     try {
-      const newsResponse = await axios.get(
-        `https://camps.runasp.net/relief/byorgmanager/${id}`
-      );
-      setReliefs(newsResponse.data);
+      const response = await reliefRegisterService.getByOrgManager(id);
+      setReliefs(response.data);
     } catch (error) {
-      console.error("Error fetching news:", error);
+      console.error("Error fetching reliefs:", error);
     }
   };
 
   const manager = organizationManagers.find(
-    (mgr) => mgr.id === org.organizationManagerId
+    (mgr) => mgr.id === org.organizationManagerId,
   );
 
   // حساب عدد المساعدات وعدد المخيمات مع القيمة الافتراضية 0 إذا كانت null أو undefined

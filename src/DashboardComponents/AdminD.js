@@ -9,7 +9,7 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
-import { motion } from "framer-motion";
+
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
 
@@ -23,12 +23,11 @@ ChartJS.register(
 );
 
 const Card = ({ children, className = "" }) => (
-  <motion.div
+  <div
     className={`bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 ${className}`}
-    whileHover={{ y: -2 }}
   >
     {children}
-  </motion.div>
+  </div>
 );
 
 const StatCard = ({ title, value, icon, color }) => (

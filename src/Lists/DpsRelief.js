@@ -2,46 +2,36 @@ import React, { useContext, useEffect, useState } from "react";
 import Table from "../CRUDComponents/Table";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { dpsReliefService } from "../services/apiService";
 
 export default function DpsRelief() {
-  const { token } = useContext(TokenContext);
   const [DpsRelief, setDpsRelief] = useState();
   const columnsToExclude = ["id", "dpsHealthIssues"];
   const [query, setQuery] = useState("");
   const [hidebtn, sethidebtn] = useState(false);
   const [hideactions, sethideActions] = useState(false);
-  const { user } = useContext(AuthContext);
   useEffect(() => {
     sethideActions(true);
     sethidebtn(true);
 
     const delayDebounce = setTimeout(() => {
-      GetDpsReliefs(`https://camps.runasp.net/dpsreleif`);
+      GetDpsReliefs();
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, []);
 
-  async function GetDpsReliefs(url) {
+  async function GetDpsReliefs() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setDpsRelief(data);
-      } else throw new Error("error" + resp.status);
+      let resp = await dpsReliefService.getAll();
+      setDpsRelief(resp.data);
     } catch (er) {
       console.error(er);
       return null;
     }
   }
   return (
-    DpsRelief && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {DpsRelief ? (
         <Table
           tableName={"توزيع المساعدات"}
           list={DpsRelief}
@@ -51,7 +41,11 @@ export default function DpsRelief() {
           hidebtn={hidebtn}
           hideactions={hideactions}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

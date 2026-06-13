@@ -2,9 +2,10 @@ import React, { useContext, useEffect, useState } from "react";
 import Table from "../CRUDComponents/Table";
 import { AuthContext } from "../AuthProvider";
 import { TokenContext } from "../TokenContext";
+import { distributionCriteriaService } from "../services/apiService";
 
 export default function DistributionCriterias() {
-  const [disCriterias, setDisCriterias] = useState([]);
+  const [disCriterias, setDisCriterias] = useState();
   const columnsToExclude = ["id", "organization", "date"];
   const [query, setQuery] = useState("");
   const [hidebtn, sethidebtn] = useState(false);
@@ -19,39 +20,20 @@ export default function DistributionCriterias() {
       sethidebtn(true);
     }
     const delayDebounce = setTimeout(() => {
-      if (query) {
-        getDisCriterias(
-          `https://camps.runasp.net/distributioncriteria?query=${encodeURIComponent(
-            query
-          )}`
-        );
-      } else {
-        getDisCriterias(`https://camps.runasp.net/distributioncriteria`);
-      }
+      getDisCriterias();
     }, 500);
 
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  async function getDisCriterias(url) {
+  async function getDisCriterias() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (resp.ok) {
-        let data = await resp.json();
-        setDisCriterias(data);
-        console.log(data); // Display fetched data in console for debugging
-      } else {
-        throw new Error("Error: " + resp.status);
-      }
-    } catch (err) {
-      console.error(err);
+      let resp = await distributionCriteriaService.getAll();
+      setDisCriterias(resp.data);
+      console.log(resp.data);
+    } catch (er) {
+      console.error(er);
+      return null;
     }
   }
 

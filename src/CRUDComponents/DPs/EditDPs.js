@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import { TokenContext } from "../../TokenContext";
+import { dpService } from "../../services/apiService";
 
 export default function EditDPs() {
   const { id } = useParams();
@@ -33,38 +33,24 @@ export default function EditDPs() {
     campId: 0,
   });
   const [showAllFields, setShowAllFields] = useState(false);
-  // let token= localStorage.getItem("token")
-  const { token } = useContext(TokenContext);
-
-  console.log(DPs);
 
   useEffect(() => {
     async function fetchDP() {
       try {
-        const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setDPs(data);
-          if (data.RelationToFamilyHead === "هو نفسه") setShowAllFields(true);
-        }
+        const response = await dpService.getById(id);
+        setDPs(response.data);
+        if (response.data.RelationToFamilyHead === "هو نفسه")
+          setShowAllFields(true);
       } catch (error) {
         console.error("Error fetching DP:", error);
       }
     }
     fetchDP();
-  }, [0]);
-  console.log(DPs);
+  }, [id]);
 
   const handleChange = async (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Update state
     setDPs((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -82,17 +68,17 @@ export default function EditDPs() {
 
         if (DPs.Identificationnumber) {
           try {
-            const res = await fetch(
-              `https://camps.runasp.net/dps/check/${DPs.Identificationnumber}`
+            const res = await dpService.getByIdentification(
+              DPs.Identificationnumber,
             );
-            const data = await res.json();
+            const data = res.data;
 
-            if (data.exists) {
+            if (data) {
               setDPs((prev) => ({
                 ...prev,
-                Fname: data.dp.fname,
-                Lname: data.dp.lname,
-                ParentId: data.dp.identificationnumber,
+                Fname: data.fname,
+                Lname: data.lname,
+                ParentId: data.identificationnumber,
               }));
               Swal.fire({
                 icon: "info",
@@ -121,37 +107,21 @@ export default function EditDPs() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(DPs);
 
     try {
-      const response = await fetch(`https://camps.runasp.net/dps/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(DPs),
-      });
+      await dpService.update(id, DPs);
 
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تم التحديث",
-          text: "تم تحديث بيانات النازح بنجاح.",
-        });
-        naviagte("..");
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "فشل التحديث",
-          text: "حدث خطأ أثناء التحديث.",
-        });
-      }
+      Swal.fire({
+        icon: "success",
+        title: "تم التحديث",
+        text: "تم تحديث بيانات النازح بنجاح.",
+      });
+      naviagte("..");
     } catch (error) {
       Swal.fire({
         icon: "error",
-        title: "خطأ في الإرسال",
-        text: "تعذر إرسال البيانات إلى الخادم.",
+        title: "فشل التحديث",
+        text: "حدث خطأ أثناء التحديث.",
       });
     }
   };
@@ -228,6 +198,7 @@ export default function EditDPs() {
               </div>
             </>
           )}
+
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-white">
               العلاقة برئيس الأسرة
@@ -308,6 +279,7 @@ export default function EditDPs() {
               />
             </>
           )}
+
           <div className="flex items-center gap-3 mt-4">
             <input
               onChange={handleChange}
@@ -353,8 +325,8 @@ function Input({
         name={name}
         type={type}
         value={value}
-        min={type == "number" ? 0 : ""}
-        minLength={type == "number" ? 0 : ""}
+        min={type === "number" ? 0 : ""}
+        minLength={type === "number" ? 0 : ""}
         onChange={onChange}
         disabled={disabled}
         className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"

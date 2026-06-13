@@ -15,6 +15,8 @@ import { TokenContext } from "../TokenContext";
 import { AuthContext } from "../AuthProvider";
 import { Bell, LogOut, Settings, User, UserCircle } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+import { notificationService, authService } from "../services/apiService";
+import config from "../config";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,30 +42,16 @@ export default function Header() {
 
   const markAsRead = async (notification) => {
     try {
-      const res = await fetch(
-        `https://camps.runasp.net/notification/${notification.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            message: notification.message,
-            seen: true,
-          }),
-        }
-      );
+      await notificationService.update(notification.id, {
+        message: notification.message,
+        seen: true,
+      });
 
-      if (res.ok) {
-        const updatedNotifications = notifications.map((n) =>
-          n.id === notification.id ? { ...n, seen: true } : n
-        );
-        setNotifications(updatedNotifications);
-        setUnreadCount(updatedNotifications.filter((n) => !n.seen).length);
-      } else {
-        console.error("فشل في تعديل حالة الإشعار.");
-      }
+      const updatedNotifications = notifications.map((n) =>
+        n.id === notification.id ? { ...n, seen: true } : n,
+      );
+      setNotifications(updatedNotifications);
+      setUnreadCount(updatedNotifications.filter((n) => !n.seen).length);
     } catch (err) {
       console.error("فشل في تحديث الإشعار:", err);
     }
@@ -73,22 +61,20 @@ export default function Header() {
     console.log(senderId);
     if (!senderId) return "مجهول";
     try {
-      const response = await fetch(
-        `https://camps.runasp.net/user/${senderId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            //'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
+      const getSenderName = async (senderId) => {
+        console.log(senderId);
+        if (!senderId) return "مجهول";
+        try {
+          const response = await authService.getUser(senderId);
+          const data = response.data;
+          console.log(data);
+
+          return `${data.fname || "مجهول"} ${data.lname || ""}`.trim();
+        } catch (error) {
+          console.error("خطأ في getSenderName:", error);
+          return "مجهول";
         }
-      );
-
-      if (!response.ok) throw new Error("فشل في جلب اسم المرسل");
-      const data = await response.json();
-      console.log(data);
-
-      return `${data.fname || "مجهول"} ${data.lname || ""}`.trim();
+      };
     } catch (error) {
       console.error("خطأ في getSenderName:", error);
       return "مجهول";
@@ -96,22 +82,10 @@ export default function Header() {
   };
   useEffect(() => {
     const fetchNotificationsWithSenders = async () => {
-      setLoading(true); // بداية تحميل
+      setLoading(true);
       try {
-        const response = await fetch(
-          "https://camps.runasp.net/rec-notifications",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) throw new Error("فشل في جلب الإشعارات");
-
-        const notificationsData = await response.json();
+        const response = await notificationService.getReceived();
+        const notificationsData = response.data;
         const uniqueSenderIds = [
           ...new Set(notificationsData.map((n) => n.senderId)),
         ];
@@ -120,7 +94,7 @@ export default function Header() {
         const senderNames = await Promise.all(
           uniqueSenderIds.map(async (id) => {
             senderNameMap[id] = await getSenderName(id);
-          })
+          }),
         );
 
         const enrichedNotifications = notificationsData.map((n) => ({

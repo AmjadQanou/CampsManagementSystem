@@ -1,5 +1,11 @@
-import axios from "axios";
 import { createContext, useState, useEffect } from "react";
+import {
+  campService,
+  organizationService,
+  organizationManagerService,
+  campManagerService,
+  announcementService,
+} from "../services/apiService";
 
 export let ApiContext = createContext();
 
@@ -16,9 +22,7 @@ export default function ApiContextProvider(props) {
   // Fetch camps data
   const getCamps = async () => {
     try {
-      const campsResponse = await axios.get(
-        "https://camps.runasp.net/maincamps"
-      );
+      const campsResponse = await campService.getMainCamps();
       setCamps(campsResponse.data);
     } catch (error) {
       console.error("Error fetching camps:", error);
@@ -28,9 +32,7 @@ export default function ApiContextProvider(props) {
   // Fetch organizations data
   const getOrgs = async () => {
     try {
-      const orgResponse = await axios.get(
-        "https://camps.runasp.net/allorganization"
-      );
+      const orgResponse = await organizationService.getAllPublic();
       setOrganizations(orgResponse.data);
       console.log(orgResponse.data, "Organizations fetched");
     } catch (error) {
@@ -41,9 +43,7 @@ export default function ApiContextProvider(props) {
   // Fetch news data
   const getNews = async () => {
     try {
-      const newsResponse = await axios.get(
-        "https://camps.runasp.net/announcments"
-      );
+      const newsResponse = await announcementService.getAll();
       setNews(newsResponse.data);
     } catch (error) {
       console.error("Error fetching news:", error);
@@ -52,20 +52,19 @@ export default function ApiContextProvider(props) {
 
   const getOrganizationManagers = async () => {
     try {
-      const response = await axios.get(
-        "https://camps.runasp.net/organizationmanager"
-      );
+      const response = await organizationManagerService.getAll();
       setOrganizationManagers(response.data);
       console.log(response.data, "Organization Managers fetched");
     } catch (error) {
       console.error("Error fetching organization managers:", error);
     }
   };
+
   const getCampManagers = async () => {
     try {
-      const response = await axios.get("https://camps.runasp.net/campmanagers");
+      const response = await campManagerService.getAll();
       setCampManagers(response.data);
-      console.log(response.data, "camp Managers fetched");
+      console.log(response.data, "Camp Managers fetched");
     } catch (error) {
       console.error("Error fetching camp managers:", error);
     }

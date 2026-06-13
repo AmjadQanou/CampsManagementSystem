@@ -10,6 +10,7 @@ import {
   UserCircle,
   BadgeCheck,
 } from "lucide-react";
+import { authService } from "../services/apiService";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -32,39 +33,29 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const res = await fetch("https://camps.runasp.net/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(register),
+      await authService.register(register);
+      Swal.fire({
+        icon: "success",
+        title: "تم التسجيل",
+        text: "تم التسجيل بنجاح",
       });
-
-      if (res.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تم التسجيل",
-          text: "تم التسجيل بنجاح",
-        });
-        navigate("/login");
-      } else {
-        const errorText = await res.text();
+      navigate("/login");
+    } catch (error) {
+      console.error(error);
+      const dataString = String(error?.response?.data ?? "");
+      if (dataString.includes("UserName")) {
         Swal.fire({
           icon: "error",
           title: "حدث خطأ",
-          text: errorText.includes("UserName")
-            ? "اسم المستخدم موجود مسبقا"
-            : "لم يتم إضافة التسجيل. حاول مرة أخرى.",
+          text: "اسم المستخدم موجود مسبقا",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "خطأ",
+          text: "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.",
         });
       }
-    } catch (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "خطأ",
-        text: "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.",
-      });
     }
   }
 

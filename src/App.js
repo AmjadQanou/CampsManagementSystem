@@ -84,6 +84,8 @@ import Announcment from "./PageComponents/Announcment";
 import NotFound from "./PageComponents/NotFound";
 import CampDetails from "./PageComponents/CampDetails";
 import OrganizationDetails from "./PageComponents/OrgDetails";
+import RegisterOrg from "./DashboardComponents/RegisterOrg";
+
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import DpsRelief from "./Lists/DpsRelief";
@@ -119,6 +121,7 @@ function App() {
             }
           >
             <Route path="mycamp" element={<Mycamp />} />
+            <Route path="registerorg" element={<RegisterOrg />} />
 
             <Route path="myorg" element={<MyOrg />} />
             <Route path="admindash" element={<AdminDashboard />} />

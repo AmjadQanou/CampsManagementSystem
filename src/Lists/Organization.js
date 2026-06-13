@@ -2,63 +2,68 @@ import React, { useContext, useEffect } from "react";
 import Table from "../CRUDComponents/Table";
 import { useState } from "react";
 import { AuthContext } from "../AuthProvider";
-import { TokenContext } from "../TokenContext";
+import { organizationService } from "../services/apiService";
 
 export default function Organization() {
   const { user } = useContext(AuthContext);
   const [query, setQuery] = useState("");
   const [hidebtn, sethidebtn] = useState(false);
   const [hideactions, sethideActions] = useState(false);
-
-  // let token=localStorage.getItem("token")
-  const { token } = useContext(TokenContext);
-
   const [orgs, setOrgs] = useState();
+
   const columnsToExclude = [
     "reliefRegisters",
     "distributionCriterias",
     "reliefRequests",
     "items",
     "organiztionManager",
+    "phoneNumber",
+    "phoneNumberConfirmed",
+    "twoFactorEnabled",
+    "lockoutEnd",
+    "lockoutEnabled",
+    "accessFailedCount",
+    "passwordHash",
+    "securityStamp",
+    "concurrencyStamp",
+    "normalizedEmail",
+    "normalizedUserName",
+    "emailConfirmed",
+    "file",
+    "organizationManagerId",
+    "id",
   ];
+
+  useEffect(() => {
+    if (user.role == "CampManager") {
+      sethideActions(true);
+      sethidebtn(true);
+    }
+  }, [user.role]);
+
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      if (user.role == "CampManager") {
-        sethideActions(true);
-        sethidebtn(true);
-      }
-      getOrgs(
-        `https://camps.runasp.net/organization?query=${encodeURIComponent(
-          query
-        )}`
-      );
+      getOrgs();
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  async function getOrgs(url) {
+  async function getOrgs() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        user.role == "OrganizationManager"
-          ? await setOrgs([data])
-          : await setOrgs(data);
-      } else throw new Error("error" + resp.status);
-    } catch (er) {
-      console.error(er);
-      return null;
+      const response = await organizationService.getAll(query);
+      if (user.role === "OrganizationManager") {
+        setOrgs([response.data]);
+      } else {
+        setOrgs(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
     }
   }
+
   return (
-    orgs && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {orgs ? (
         <Table
           tableName={"المؤسسات"}
           list={orgs}
@@ -68,7 +73,11 @@ export default function Organization() {
           hidebtn={hidebtn}
           hideactions={hideactions}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

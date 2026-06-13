@@ -1,13 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { TokenContext } from "../../TokenContext";
+import { campManagerService } from "../../services/apiService";
 
 export default function AddCampManager() {
-  // let token = localStorage.getItem("token");
-  const { token } = useContext(TokenContext);
-
   const navigate = useNavigate();
 
   const [campManager, setCampManager] = useState({
@@ -45,27 +42,14 @@ export default function AddCampManager() {
     }
 
     try {
-      const allManagersResponse = await fetch(
-        "https://camps.runasp.net/campmanagers",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!allManagersResponse.ok)
-        throw new Error("Failed to fetch existing camp managers");
-
-      const existingManagers = await allManagersResponse.json();
+      const allManagersResponse = await campManagerService.getAll();
+      const existingManagers = allManagersResponse.data;
 
       const usernameExists = existingManagers.some(
-        (mgr) => mgr.username === campManager.username
+        (mgr) => mgr.username === campManager.username,
       );
       const emailExists = existingManagers.some(
-        (mgr) => mgr.email === campManager.email
+        (mgr) => mgr.email === campManager.email,
       );
 
       if (usernameExists || emailExists) {
@@ -83,43 +67,28 @@ export default function AddCampManager() {
         return;
       }
 
-      const response = await fetch("https://camps.runasp.net/campmanager", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(campManager),
-      });
+      await campManagerService.create(campManager);
 
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تمت الإضافة!",
-          text: "تم إضافة مدير المخيم بنجاح 🎉",
-          confirmButtonText: "رجوع",
-        }).then(() => {
-          setCampManager({
-            username: "",
-            password: "",
-            email: "",
-            role: "CampManager",
-            fname: "",
-            lname: "",
-            dob: "",
-            contactInfo: "",
-            approved: false,
-            gender: "",
-          });
-          navigate("..");
+      Swal.fire({
+        icon: "success",
+        title: "تمت الإضافة!",
+        text: "تم إضافة مدير المخيم بنجاح 🎉",
+        confirmButtonText: "رجوع",
+      }).then(() => {
+        setCampManager({
+          username: "",
+          password: "",
+          email: "",
+          role: "CampManager",
+          fname: "",
+          lname: "",
+          dob: "",
+          contactInfo: "",
+          approved: false,
+          gender: "",
         });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "حدث خطأ!",
-          text: "يرجى المحاولة لاحقًا",
-        });
-      }
+        navigate("..");
+      });
     } catch (err) {
       console.error(err);
       Swal.fire({

@@ -1,17 +1,18 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { TokenContext } from "../../TokenContext";
+import {
+  campService,
+  displacementService,
+  dpService,
+} from "../../services/apiService";
 
 export default function AddDisplacement() {
   const [camps, setCamps] = useState([]);
   const [ca, setCa] = useState();
-
   const [dps, setDps] = useState([]);
-  // let token=localStorage.getItem("token")
-  const { token } = useContext(TokenContext);
-
   const navigate = useNavigate();
+
   const [displacement, setDisplacement] = useState({
     reason: "",
     dpsId: "",
@@ -21,9 +22,9 @@ export default function AddDisplacement() {
   });
 
   useEffect(() => {
-    GetAllCamps("https://camps.runasp.net/allcamp");
-    GetDps("https://camps.runasp.net/parentdps");
-    GetCamps("https://camps.runasp.net/camp");
+    GetAllCamps();
+    GetDps();
+    GetCamps();
   }, []);
 
   function handleRefChange(event) {
@@ -42,20 +43,12 @@ export default function AddDisplacement() {
       });
       return;
     }
-    console.log(ca);
 
-    displacement.campIdFrom = await ca[0].id;
+    displacement.campIdFrom = ca[0].id;
 
-    const response = await fetch("https://camps.runasp.net/displacement", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(displacement),
-    });
+    try {
+      await displacementService.create(displacement);
 
-    if (response.ok) {
       Swal.fire({
         icon: "success",
         title: "تمت الإضافة!",
@@ -71,7 +64,7 @@ export default function AddDisplacement() {
         });
         navigate("..");
       });
-    } else {
+    } catch (error) {
       Swal.fire({
         icon: "error",
         title: "حدث خطأ!",
@@ -80,55 +73,28 @@ export default function AddDisplacement() {
     }
   }
 
-  async function GetCamps(url) {
+  async function GetCamps() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setCa(data);
-      }
+      const resp = await campService.getAll();
+      setCa(resp.data);
     } catch (error) {
       console.error(error);
     }
   }
 
-  async function GetAllCamps(url) {
+  async function GetAllCamps() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setCamps(data);
-      }
+      const resp = await campService.getAllOtherCamps();
+      setCamps(resp.data);
     } catch (error) {
       console.error(error);
     }
   }
 
-  async function GetDps(url) {
+  async function GetDps() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setDps(data);
-      }
+      const resp = await dpService.getParents();
+      setDps(resp.data);
     } catch (error) {
       console.error(error);
     }

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../AuthProvider";
+import { campService, campManagerService } from "../../services/apiService";
 
 export default function EditCamp() {
   const { id } = useParams();
@@ -30,19 +31,13 @@ export default function EditCamp() {
           approved: false,
           numOfBaths: "",
           numOfWaterGallons: "",
-        }
+        },
   );
 
-  let token = localStorage.getItem("token");
-
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-    GetCamp(`https://camps.runasp.net/camp/${id}`);
-    GetCampsManagers("https://camps.runasp.net/campmanagers");
-  }, [id, token, navigate]);
+    GetCamp();
+    GetCampsManagers();
+  }, [id]);
 
   function handleRefChange(event) {
     const { name, value, type, checked } = event.target;
@@ -85,102 +80,69 @@ export default function EditCamp() {
     formData.append("Approved", camp.approved);
     formData.append(
       "CampManagerId",
-      user.role === "SystemManager" ? camp.campManagerId : user.id
+      user.role === "SystemManager" ? camp.campManagerId : user.id,
     );
 
     if (image) {
-      formData.append("file", image); // إضافة الصورة إذا كانت موجودة
+      formData.append("file", image);
     }
 
     try {
-      const resp = await fetch(`https://camps.runasp.net/camp/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      await campService.update(id, formData);
 
-      if (resp.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "تم التعديل!",
-          text: "تم تعديل بيانات المخيم بنجاح 🎉",
-          confirmButtonColor: "#DC7F56",
-        });
-        navigate("..");
-      } else {
-        const errorText = await resp.text();
-        if (errorText.includes("name already exists")) {
-          Swal.fire({
-            icon: "error",
-            title: "خطأ في الاسم",
-            text: "اسم المخيم موجود بالفعل!",
-            confirmButtonColor: "#DC7F56",
-          });
-        } else if (errorText.includes("camp manager already has a camp")) {
-          Swal.fire({
-            icon: "error",
-            title: "مدير مكرر",
-            text: "مدير المخيم مرتبط بمخيم آخر!",
-            confirmButtonColor: "#DC7F56",
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "حدث خطأ!",
-            text: "يرجى المحاولة لاحقًا",
-            confirmButtonColor: "#DC7F56",
-          });
-        }
-      }
-    } catch (error) {
-      console.error(error);
       Swal.fire({
-        icon: "error",
-        title: "فشل الاتصال",
-        text: "تعذر الاتصال بالخادم.",
+        icon: "success",
+        title: "تم التعديل!",
+        text: "تم تعديل بيانات المخيم بنجاح 🎉",
         confirmButtonColor: "#DC7F56",
       });
-    }
-  }
-
-  async function GetCampsManagers(url) {
-    try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setCapmManagers(data);
+      navigate("..");
+    } catch (error) {
+      const errorText = error?.response?.data || "";
+      if (errorText.includes("name already exists")) {
+        Swal.fire({
+          icon: "error",
+          title: "خطأ في الاسم",
+          text: "اسم المخيم موجود بالفعل!",
+          confirmButtonColor: "#DC7F56",
+        });
+      } else if (errorText.includes("camp manager already has a camp")) {
+        Swal.fire({
+          icon: "error",
+          title: "مدير مكرر",
+          text: "مدير المخيم مرتبط بمخيم آخر!",
+          confirmButtonColor: "#DC7F56",
+        });
       } else {
-        throw new Error("Error: " + resp.status);
+        Swal.fire({
+          icon: "error",
+          title: "حدث خطأ!",
+          text: "يرجى المحاولة لاحقًا",
+          confirmButtonColor: "#DC7F56",
+        });
       }
+    }
+  }
+
+  async function GetCampsManagers() {
+    try {
+      const resp = await campManagerService.getAll();
+      setCapmManagers(resp.data);
     } catch (error) {
       console.error(error);
     }
   }
 
-  async function GetCamp(url) {
+  async function GetCamp() {
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setCamp(data);
-        setExistingImage(data.imageUrl); // تحميل الصورة الموجودة
-      } else throw new Error("Error: " + resp.status);
+      const resp = await campService.getById(id);
+      setCamp(resp.data);
+      setExistingImage(resp.data.imageUrl);
     } catch (error) {
       console.error(error);
     }
   }
+
   return (
     <section
       className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4"
@@ -234,7 +196,6 @@ export default function EditCamp() {
               value={camp.capacity}
               type="number"
               min={0}
-              minLength={0}
               name="capacity"
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -251,7 +212,6 @@ export default function EditCamp() {
               value={camp.numOfBaths}
               type="number"
               min={0}
-              minLength={0}
               name="numOfBaths"
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -268,7 +228,6 @@ export default function EditCamp() {
               value={camp.numOfWaterGallons}
               type="number"
               min={0}
-              minLength={0}
               name="numOfWaterGallons"
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-[#DC7F56] focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600"

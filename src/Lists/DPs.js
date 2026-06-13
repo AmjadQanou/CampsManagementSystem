@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import DpsTable from "../CRUDComponents/DpsTable";
 import { TokenContext } from "../TokenContext";
+import { dpService } from "../services/apiService";
 
 export default function DPs() {
   const [DPs, setDPs] = React.useState();
@@ -40,13 +41,7 @@ export default function DPs() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`https://camps.runasp.net/dps/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await dpService.delete(id);
       setDPs((prev) => prev.filter((dp) => dp.id !== id));
     } catch (error) {
       console.error("Failed to delete DP:", error);
@@ -69,6 +64,12 @@ export default function DPs() {
     "lockoutEnd",
     "lockoutEnabled",
     "accessFailedCount",
+    "passwordHash",
+    "userName",
+    "emailConfirmed",
+    "reliefMin",
+    "campId",
+    "role",
   ];
   React.useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -81,43 +82,36 @@ export default function DPs() {
   const { token } = useContext(TokenContext);
 
   async function getDPs(searchQuery = "") {
-    let url = "https://camps.runasp.net/parentdps";
-    if (searchQuery) {
-      url = `https://camps.runasp.net/parentdps/search?query=${encodeURIComponent(
-        searchQuery
-      )}`;
-    }
-
     try {
-      let resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (resp.ok) {
-        let data = await resp.json();
-        setDPs(data);
-      } else throw new Error("error" + resp.status);
+      let resp;
+      if (searchQuery) {
+        resp = await dpService.searchParent(searchQuery);
+      } else {
+        resp = await dpService.getParents();
+      }
+      setDPs(resp.data);
     } catch (er) {
       console.error(er);
       return null;
     }
   }
   return (
-    DPs && (
-      <div>
+    <div className="flex flex-col flex-1 w-full h-full bg-gray-50">
+      {DPs ? (
         <DpsTable
           tableName={"نازح"}
+          list={DPs}
+          columnsToExclude={columnsToExclude}
           searchValue={query}
           setSearchValue={setQuery}
           onDelete={handleDelete}
-          list={DPs}
-          columnsToExclude={columnsToExclude}
           columnOrder={dpsFieldOrder}
         />
-      </div>
-    )
+      ) : (
+        <div className="flex items-center justify-center flex-1 min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-400 border-t-transparent"></div>
+        </div>
+      )}
+    </div>
   );
 }

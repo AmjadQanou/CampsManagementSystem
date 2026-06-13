@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { Bell, User, LogOut, Settings, UserCircle } from "lucide-react";
 import { AuthContext } from "../AuthProvider";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { notificationService, authService } from "../services/apiService";
 
 const NavBar = () => {
   const [notifications, setNotifications] = useState([]);
@@ -18,22 +18,10 @@ const NavBar = () => {
   // Fetch notifications + sender names
   useEffect(() => {
     const fetchNotificationsWithSenders = async () => {
-      setLoading(true); // بداية تحميل
+      setLoading(true);
       try {
-        const response = await fetch(
-          "https://camps.runasp.net/rec-notifications",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) throw new Error("فشل في جلب الإشعارات");
-
-        const notificationsData = await response.json();
+        const response = await notificationService.getReceived();
+        const notificationsData = response.data;
         const uniqueSenderIds = [
           ...new Set(notificationsData.map((n) => n.senderId)),
         ];
@@ -42,7 +30,7 @@ const NavBar = () => {
         const senderNames = await Promise.all(
           uniqueSenderIds.map(async (id) => {
             senderNameMap[id] = await getSenderName(id);
-          })
+          }),
         );
 
         const enrichedNotifications = notificationsData.map((n) => ({
@@ -55,7 +43,7 @@ const NavBar = () => {
       } catch (error) {
         console.error("حدث خطأ أثناء جلب الإشعارات مع أسماء المرسلين:", error);
       } finally {
-        setLoading(false); // انتهى التحميل
+        setLoading(false);
       }
     };
 
@@ -70,54 +58,26 @@ const NavBar = () => {
 
   const markAsRead = async (notification) => {
     try {
-      const res = await fetch(
-        `https://camps.runasp.net/notification/${notification.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            message: notification.message,
-            seen: true,
-          }),
-        }
-      );
+      await notificationService.update(notification.id, {
+        message: notification.message,
+        seen: true,
+      });
 
-      if (res.ok) {
-        const updatedNotifications = notifications.map((n) =>
-          n.id === notification.id ? { ...n, seen: true } : n
-        );
-        setNotifications(updatedNotifications);
-        setUnreadCount(updatedNotifications.filter((n) => !n.seen).length);
-      } else {
-        console.error("فشل في تعديل حالة الإشعار.");
-      }
+      const updatedNotifications = notifications.map((n) =>
+        n.id === notification.id ? { ...n, seen: true } : n,
+      );
+      setNotifications(updatedNotifications);
+      setUnreadCount(updatedNotifications.filter((n) => !n.seen).length);
     } catch (err) {
       console.error("فشل في تحديث الإشعار:", err);
     }
   };
 
   const getSenderName = async (senderId) => {
-    console.log(senderId);
     if (!senderId) return "مجهول";
     try {
-      const response = await fetch(
-        `https://camps.runasp.net/user/${senderId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            //'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error("فشل في جلب اسم المرسل");
-      const data = await response.json();
-      console.log(data);
-
+      const response = await authService.getUser(senderId);
+      const data = response.data;
       return `${data.fname || "مجهول"} ${data.lname || ""}`.trim();
     } catch (error) {
       console.error("خطأ في getSenderName:", error);
@@ -127,47 +87,49 @@ const NavBar = () => {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, type: "spring" }}
-        className="bg-white shadow-md px-4 py-3 sticky top-0 z-50"
-      >
+      <nav className="bg-white border-b border-[#E8E4DE] px-4 py-3 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div
-            className="text-2xl font-bold text-[#DC7F56] cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            ReliefPortal
+            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#DC7F56] to-[#A6B78D] flex items-center justify-center text-white text-lg font-bold shadow-sm group-hover:scale-105 transition-transform">
+              R
+            </span>
+            <span className="text-2xl font-bold text-[#2D2926] tracking-tight">
+              Relief<span className="text-[#DC7F56]">Portal</span>
+            </span>
           </div>
 
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
-            className="hidden md:block text-[18px] px-[70px] py-1.5 rounded-full text-white font-semibold bg-gradient-to-r from-[#DC7F56] to-[#A6B78D] shadow-lg animate-pulse text-center"
-          >
+          <span className="hidden md:block text-sm font-semibold text-[#7A706A] tracking-wide bg-[#F9F7F4] border border-[#E8E4DE] rounded-full px-4 py-1.5">
             لوحة التحكم
-          </motion.div>
+          </span>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Notifications */}
             <div className="relative">
-              <Bell
-                className="text-gray-600 hover:text-[#DC7F56] cursor-pointer transition-transform hover:scale-110"
+              <button
                 onClick={() => setShowDropdown(!showDropdown)}
-              />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
-                  {unreadCount}
-                </span>
-              )}
+                className="relative w-10 h-10 rounded-full bg-[#F9F7F4] border border-[#E8E4DE] flex items-center justify-center hover:bg-[#F3F1EE] hover:border-[#A6B78D]/40 transition-colors"
+              >
+                <Bell size={19} className="text-[#7A706A]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#DC7F56] text-white text-[10px] font-semibold w-5 h-5 flex items-center justify-center rounded-full ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
 
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-96 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-auto">
-                  <ul className="divide-y divide-gray-200 text-sm p-2">
+                <div className="absolute right-0 mt-2 w-96 bg-white border border-[#E8E4DE] rounded-xl shadow-lg z-50 max-h-96 overflow-auto">
+                  <div className="px-4 py-3 border-b border-[#F0EDE9]">
+                    <h3 className="text-sm font-bold text-[#2D2926]">
+                      الإشعارات
+                    </h3>
+                  </div>
+                  <ul className="divide-y divide-[#F0EDE9] text-sm">
                     {notifications.filter((n) => !n.seen).length === 0 ? (
-                      <li className="px-4 py-2 text-gray-500">
+                      <li className="px-4 py-6 text-center text-[#B0A89E]">
                         لا توجد إشعارات غير مقروءة
                       </li>
                     ) : (
@@ -177,31 +139,31 @@ const NavBar = () => {
                         .map((notif) => (
                           <li
                             key={notif.id}
-                            className="flex justify-between items-center px-2 py-2 hover:bg-gray-50"
+                            className="flex justify-between items-center gap-3 px-4 py-3 hover:bg-[#F9F7F4] transition-colors"
                           >
-                            <span className="text-sm font-medium text-black">
-                              <span className="text-[#DC7F56]">
+                            <span className="text-sm text-[#2D2926]">
+                              <span className="font-semibold text-[#DC7F56]">
                                 {notif.senderName}:
                               </span>{" "}
                               {notif.message}
                             </span>
                             <button
                               onClick={() => markAsRead(notif)}
-                              className="text-blue-500 text-xs"
+                              className="text-xs font-medium text-[#A6B78D] hover:text-[#8ca170] whitespace-nowrap"
                             >
-                              Mark as Read
+                              تحديد كمقروء
                             </button>
                           </li>
                         ))
                     )}
                   </ul>
-                  <div className="text-center p-2 border-t">
+                  <div className="text-center p-2 border-t border-[#F0EDE9]">
                     <button
                       onClick={() => {
                         setShowAllNotifications(true);
                         setShowDropdown(false);
                       }}
-                      className="text-[#DC7F56] hover:underline text-sm"
+                      className="text-[#DC7F56] hover:text-[#c46b45] text-sm font-medium transition-colors"
                     >
                       عرض جميع الإشعارات
                     </button>
@@ -214,64 +176,60 @@ const NavBar = () => {
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="w-10 h-10 rounded-full bg-[#F2F2F2] flex items-center justify-center hover:ring-2 hover:ring-[#DC7F56] transition-shadow"
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A6B78D] to-[#8ca170] flex items-center justify-center hover:ring-2 hover:ring-[#A6B78D]/40 transition-shadow shadow-sm"
               >
-                <User size={22} className="text-[#DC7F56]" />
+                <User size={20} className="text-white" />
               </button>
 
-              <AnimatePresence>
-                {profileOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-                  >
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm text-gray-500">مرحبًا 👋</p>
-                      <p className="font-medium text-gray-800">
-                        {user?.firstName || "User"}
-                      </p>
-                    </div>
-                    <ul className="text-sm">
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
-                        <UserCircle size={18} /> الملف الشخصي
-                      </li>
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
-                        <Settings size={18} /> الإعدادات
-                      </li>
-                      <li
-                        onClick={handleLogout}
-                        className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer flex items-center gap-2"
-                      >
-                        <LogOut size={18} /> تسجيل الخروج
-                      </li>
-                    </ul>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-[#E8E4DE] rounded-xl shadow-lg z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[#F0EDE9] bg-[#F9F7F4]">
+                    <p className="text-xs text-[#7A706A]">مرحبًا 👋</p>
+                    <p className="font-semibold text-[#2D2926]">
+                      {user?.name || user?.fname || user?.given_name || "User"}
+                    </p>
+                  </div>
+                  <ul className="text-sm">
+                    <li className="px-4 py-2.5 hover:bg-[#F9F7F4] cursor-pointer flex items-center gap-2 text-[#2D2926] transition-colors">
+                      <UserCircle size={18} className="text-[#A6B78D]" /> الملف
+                      الشخصي
+                    </li>
+                    <li className="px-4 py-2.5 hover:bg-[#F9F7F4] cursor-pointer flex items-center gap-2 text-[#2D2926] transition-colors">
+                      <Settings size={18} className="text-[#A6B78D]" />{" "}
+                      الإعدادات
+                    </li>
+                    <li
+                      onClick={handleLogout}
+                      className="px-4 py-2.5 hover:bg-[#FDF4F1] text-[#DC7F56] cursor-pointer flex items-center gap-2 border-t border-[#F0EDE9] transition-colors"
+                    >
+                      <LogOut size={18} /> تسجيل الخروج
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Modal: All Notifications */}
       {showAllNotifications && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white w-[90%] max-w-lg rounded-lg shadow-lg p-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">جميع الإشعارات</h2>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white w-[90%] max-w-lg rounded-2xl border border-[#E8E4DE] shadow-2xl p-0 max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center px-5 py-4 border-b border-[#F0EDE9]">
+              <h2 className="text-lg font-bold text-[#2D2926]">
+                جميع الإشعارات
+              </h2>
               <button
                 onClick={() => setShowAllNotifications(false)}
-                className="text-gray-500 hover:text-red-500 text-xl font-bold"
+                className="text-[#B0A89E] hover:text-[#DC7F56] text-xl font-bold transition-colors"
               >
                 ×
               </button>
             </div>
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-[#F0EDE9] overflow-y-auto">
               {notifications.length === 0 ? (
-                <li className="py-4 text-center text-gray-500">
+                <li className="py-8 text-center text-[#B0A89E] text-sm">
                   لا توجد إشعارات
                 </li>
               ) : (
@@ -280,16 +238,16 @@ const NavBar = () => {
                   .map((notif) => (
                     <li
                       key={notif.id}
-                      className="py-2 px-1 flex justify-between items-center hover:bg-gray-50 rounded"
+                      className="py-3 px-5 flex justify-between items-center gap-3 hover:bg-[#F9F7F4] transition-colors"
                     >
                       <span
                         className={`text-sm ${
                           notif.seen
-                            ? "text-gray-500"
-                            : "text-black font-medium"
+                            ? "text-[#B0A89E]"
+                            : "text-[#2D2926] font-medium"
                         }`}
                       >
-                        <span className="text-[#DC7F56]">
+                        <span className="text-[#DC7F56] font-semibold">
                           {notif.senderName}:
                         </span>{" "}
                         {notif.message}
@@ -297,9 +255,9 @@ const NavBar = () => {
                       {!notif.seen && (
                         <button
                           onClick={() => markAsRead(notif)}
-                          className="text-xs text-blue-500 hover:underline"
+                          className="text-xs font-medium text-[#A6B78D] hover:text-[#8ca170] whitespace-nowrap"
                         >
-                          Mark as Read
+                          تحديد كمقروء
                         </button>
                       )}
                     </li>
